@@ -15,7 +15,7 @@ class PlivoTypeTest(TembaTest):
         self.login(self.admin)
 
         # disable plivo test
-        return True
+        # return True
 
         # remove any existing channels
         self.org.channels.update(is_active=False, org=None)

@@ -1348,7 +1348,7 @@ class OrgTest(TembaTest):
 
     def test_chatbase_account(self):
         # disable test_chatbase_account
-        return True
+        # return True
 
         self.login(self.admin)
 
