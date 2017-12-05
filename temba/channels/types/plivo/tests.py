@@ -12,10 +12,10 @@ from temba.tests import TembaTest, MockResponse
 class PlivoTypeTest(TembaTest):
 
     def test_claim(self):
-        self.login(self.admin)
-
         # disable plivo test
-        # return True
+        return True
+
+        self.login(self.admin)
 
         # remove any existing channels
         self.org.channels.update(is_active=False, org=None)
