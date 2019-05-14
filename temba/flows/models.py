@@ -9,13 +9,12 @@ import phonenumbers
 import regex
 import six
 import time
-import urllib2
+import urllib
 import requests
 import zipfile
 import boto3
 
 from collections import OrderedDict, defaultdict
-from cStringIO import StringIO
 from datetime import timedelta, datetime
 from decimal import Decimal
 from django.conf import settings
@@ -32,6 +31,7 @@ from django.utils.translation import ugettext_lazy as _, ungettext_lazy as _n
 from django.utils.html import escape
 from django_redis import get_redis_connection
 from enum import Enum
+from io import StringIO
 from six.moves import range
 from smartmin.models import SmartModel
 from sorl.thumbnail import get_thumbnail
@@ -1197,7 +1197,7 @@ class Flow(TembaModel):
             try:  # pragma: needs cover
                 url = "https://%s/%s" % (settings.AWS_BUCKET_DOMAIN, url)
                 temp = NamedTemporaryFile(delete=True)
-                temp.write(urllib2.urlopen(url).read())
+                temp.write(urllib.urlopen(url).read())
                 temp.flush()
                 return default_storage.save(path, temp)
             except Exception:  # pragma: needs cover

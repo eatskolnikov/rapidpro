@@ -6,7 +6,11 @@ import phonenumbers
 import requests
 import six
 import time
-import urlparse
+
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse
 
 from abc import ABCMeta, abstractmethod
 

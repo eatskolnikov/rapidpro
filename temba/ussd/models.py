@@ -80,7 +80,7 @@ class USSDSession(ChannelSession):
 
     @classmethod
     def handle_incoming(cls, channel, urn, date, external_id, contact=None, message_id=None, status=None,
-                        content=None, starcode=None, org=None, async=True):
+                        content=None, starcode=None, org=None, _async=True):
 
         trigger = None
         contact_urn = None
@@ -140,7 +140,7 @@ class USSDSession(ChannelSession):
             created = None
 
         # start session
-        if created and async and trigger:
+        if created and _async and trigger:
             connection.start_async(trigger.flow, date, message_id)
 
         # resume session, deal with incoming content and all the other states

@@ -10,7 +10,7 @@ from collections import OrderedDict
 from decimal import Decimal
 from django.db.models import Q, Func, Value as Val, CharField
 from django.db.models.functions import Upper, Substr
-from django.utils.encoding import force_unicode
+from django.utils.encoding import force_text
 from django.utils.translation import gettext as _
 from functools import reduce
 from temba.locations.models import AdminBoundary
@@ -46,7 +46,7 @@ class SearchException(Exception):
         self.message = message
 
     def __str__(self):
-        return force_unicode(self.message)
+        return force_text(self.message)
 
 
 @six.python_2_unicode_compatible
