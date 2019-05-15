@@ -2140,7 +2140,7 @@ class OrgCRUDL(SmartCRUDL):
                     field_mapping.append((field_name, check_field))
                     resthooks.append(dict(resthook=resthook, field=field_name))
 
-                self.fields = OrderedDict(self.fields.items() + field_mapping)
+                self.fields = OrderedDict(list(self.fields.items()) + field_mapping)
                 return resthooks
 
             def clean_resthook(self):
