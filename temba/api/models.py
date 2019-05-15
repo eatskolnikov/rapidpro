@@ -27,10 +27,7 @@ from temba.utils import datetime_to_str, prepped_request_to_str, on_transaction_
 from temba.utils.cache import get_cacheable_attr
 from temba.utils.http import http_headers
 
-try:
-    from urllib import urlencode
-except ImportError:
-    from urllib.parse import urlencode
+from urllib.parse import urlencode
 
 
 class APIPermission(BasePermission):

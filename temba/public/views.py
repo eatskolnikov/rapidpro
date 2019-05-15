@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
 import json
-import urlparse
+
+import urllib.parse as urlparse
 
 from django.conf import settings
 from django.core.urlresolvers import reverse
@@ -14,7 +15,7 @@ from smartmin.views import SmartCRUDL, SmartReadView, SmartFormView, SmartCreate
 from temba.public.models import Lead, Video
 from temba.utils import analytics, get_anonymous_user
 from temba.utils.text import random_string
-from urllib import urlencode
+from urllib.parse import urlencode
 
 
 class IndexView(SmartTemplateView):
