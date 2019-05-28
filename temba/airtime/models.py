@@ -8,6 +8,7 @@ import time
 
 from django.conf import settings
 from django.db import models
+from django.utils.encoding import force_bytes
 from smartmin.models import SmartModel
 from temba.channels.models import Channel
 from temba.contacts.models import Contact, TEL_SCHEME
@@ -57,7 +58,7 @@ class AirtimeTransfer(SmartModel):
 
         key = str(int(time.time()))
         md5 = hashlib.md5()
-        md5.update(login + token + key)
+        md5.update(force_bytes(login + token + key))
         md5 = md5.hexdigest()
 
         data = kwargs
