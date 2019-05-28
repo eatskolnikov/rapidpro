@@ -1,27 +1,32 @@
 # use container-based Ubuntu Trusty
-dist:
-  - trusty
-sudo:
-  - false
+dist: trusty
+sudo: true
 
 language: python
 python:
-  - "2.7.11"
-
-addons:
-  apt:
-    packages:
-      - postgresql-9.4-postgis-2.3
-      - python3
-      - python3-pip
-  postgresql: "9.4"
+  - "3.6.6"
 
 services:
   - redis-server
 
+env:
+  - PGDB=10
+  - PGDB=9.6
+
 cache:
   directories:
     - "$HOME/.cache/pip"
+
+before_install:
+  - sudo -E service postgresql stop 9.2
+  - sudo -E service postgresql stop 9.3
+  - sudo -E service postgresql stop 9.4
+  - sudo -E service postgresql stop 9.5
+  - sudo -E service postgresql stop 9.6
+  - sudo -E apt-get -yq --no-install-suggests --no-install-recommends $(travis_apt_get_options) install postgresql-$PGDB postgresql-client-$PGDB postgresql-$PGDB-postgis-2.4 postgresql-$PGDB-postgis-2.4-scripts
+  - sudo -E sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
+  - sudo -E sed -i 's/port = 5433/port = 5432/' /etc/postgresql/*/main/postgresql.conf
+  - sudo -E service postgresql restart $PGDB
 
 install:
   # install all Python dependencies
@@ -29,17 +34,13 @@ install:
   - pip --version
   - pip install -r pip-freeze.txt --upgrade
   - pip install coveralls
-
-  # install flake8 on Python 3
-  - export PATH=$HOME/.local/bin:$PATH
-  - python3 --version
-  - pip3 --version
-  - pip3 install flake8 --user `whoami`
+  - pip install flake8
 
   # switch to Node 6 and install our node dependencies
   - nvm install 6
   - nvm use 6
   - npm install
+  - npm run build
 
 before_script:
   # setup test database
@@ -59,7 +60,6 @@ script:
 
   # test PEP8 compliance on both Python 2 and 3
   - flake8
-  - /home/travis/.local/bin/flake8
   
   # check for model changes not reflected in a migration
   - python manage.py makemigrations --dry-run | grep 'No changes detected' || (echo 'There are changes which require migrations.' && exit 1)
@@ -77,6 +77,7 @@ script:
   - set +e
 
 after_success:
+  - pip install pyopenssl==17.4.0
   - coveralls --rcfile .coveragerc_failcheck
   - coverage report -i --rcfile .coveragerc
   - coverage report -i --rcfile .coveragerc_failcheck --fail-under=100
