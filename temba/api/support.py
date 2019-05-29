@@ -10,7 +10,6 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import APIException
 from rest_framework.renderers import BrowsableAPIRenderer
 from rest_framework.throttling import ScopedRateThrottle
-from rest_framework.views import exception_handler
 from .models import APIToken
 
 logger = logging.getLogger(__name__)
@@ -104,6 +103,8 @@ def temba_exception_handler(exc, context):
     """
     Custom exception handler which prevents responding to API requests that error with an HTML error page
     """
+    from rest_framework.views import exception_handler
+
     response = exception_handler(exc, context)
 
     if response or not getattr(settings, 'REST_HANDLE_EXCEPTIONS', False):

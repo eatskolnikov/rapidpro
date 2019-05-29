@@ -19,7 +19,7 @@ from temba.flows.models import ActionSet, WebhookAction, Flow
 from temba.msgs.models import Broadcast, FAILED
 from temba.orgs.models import ALL_EVENTS
 from temba.tests import MockResponse, TembaTest
-from urlparse import parse_qs
+from urllib.parse import parse_qs
 from uuid import uuid4
 
 
@@ -635,5 +635,4 @@ class WebHookTest(TembaTest):
             self.assertFalse('bogus' in mock.call_args[1]['data'])
 
             response = self.client.post(reverse('api.webhook_tunnel'), dict())
-            self.assertEqual(400, response.status_code)
-            self.assertTrue(response.content.find("Must include") >= 0)
+            self.assertContains(response, "Must include", status_code=400)

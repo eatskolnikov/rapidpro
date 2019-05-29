@@ -27,7 +27,7 @@ from temba.orgs.models import Language
 from temba.tests import TembaTest, AnonymousOrg
 from temba.values.models import Value
 from uuid import uuid4
-from urllib import quote_plus
+from urllib.parse import quote_plus
 from temba.api.models import APIToken, Resthook, WebHookEvent
 from . import fields
 from .serializers import format_datetime
@@ -156,8 +156,7 @@ class APITest(TembaTest):
 
         response = self.client.get(reverse('api.v2.fields') + '.json', content_type="application/json",
                                    HTTP_X_FORWARDED_HTTPS='https')
-        self.assertEqual(response.status_code, 500)
-        self.assertEqual(response.content, "Server Error. Site administrators have been notified.")
+        self.assertContains(response, "Server Error. Site administrators have been notified.", status_code=500)
 
     def test_serializer_fields(self):
         group = self.create_group("Customers")
@@ -386,7 +385,7 @@ class APITest(TembaTest):
         # fetch as HTML
         response = self.fetchHTML(url)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.context['form'].fields.keys(), ['username', 'password', 'role', 'loc'])
+        self.assertEqual(list(response.context['form'].fields.keys()), ['username', 'password', 'role', 'loc'])
 
         admins = Group.objects.get(name='Administrators')
         surveyors = Group.objects.get(name='Surveyors')
@@ -1266,7 +1265,7 @@ class APITest(TembaTest):
 
         # try to update a contact by both UUID and URN
         response = self.postJSON(url, 'uuid=%s&urn=%s' % (jean.uuid, quote_plus("tel:+250784444444")), {})
-        self.assertResponseError(response, None, "URL can only contain one of the following parameters: urn, uuid")
+        self.assertResponseError(response, None, "URL can only contain one of the following parameters: uuid, urn")
 
         with AnonymousOrg(self.org):
             # can't update via URN
@@ -1288,7 +1287,7 @@ class APITest(TembaTest):
 
         # try an empty delete request
         response = self.deleteJSON(url, None)
-        self.assertResponseError(response, None, "URL must contain one of the following parameters: urn, uuid")
+        self.assertResponseError(response, None, "URL must contain one of the following parameters: uuid, urn")
 
         # delete a contact by UUID
         response = self.deleteJSON(url, 'uuid=%s' % jean.uuid)

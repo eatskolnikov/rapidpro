@@ -47,7 +47,7 @@ from temba.utils.models import SquashableModel
 from temba.utils.text import random_string
 from timezone_field import TimeZoneField
 
-import urllib.parse as urlparse
+from urllib.parse import urlparse
 
 from uuid import uuid4
 

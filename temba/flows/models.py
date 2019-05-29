@@ -2507,12 +2507,12 @@ class Flow(TembaModel):
                         existing_actionsets[uuid] = existing
 
             # now work through all our objects once more, making sure all uuids map appropriately
-            for existing in existing_actionsets.values():
+            for existing in list(existing_actionsets.values()):
                 if existing.uuid not in seen:
                     del existing_actionsets[existing.uuid]
                     existing.delete()
 
-            for existing in existing_rulesets.values():
+            for existing in list(existing_rulesets.values()):
                 if existing.uuid not in seen:
                     # clean up any values on this ruleset
                     Value.objects.filter(ruleset=existing, org=self.org).delete()
