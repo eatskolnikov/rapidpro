@@ -13,6 +13,7 @@ import urllib
 import requests
 import zipfile
 import boto3
+import iso8601
 
 from collections import OrderedDict, defaultdict
 from datetime import timedelta, datetime
@@ -44,7 +45,7 @@ from temba.msgs.models import Broadcast, Msg, FLOW, INBOX, INCOMING, QUEUED, FAI
 from temba.msgs.models import PENDING, DELIVERED, USSD as MSG_TYPE_USSD, OUTGOING
 from temba.orgs.models import Org, Language, UNREAD_FLOW_MSGS, get_current_export_version
 from temba.links.models import Link
-from temba.utils import get_datetime_format, str_to_datetime, datetime_to_str, analytics, json_date_to_datetime
+from temba.utils import get_datetime_format, str_to_datetime, datetime_to_str, analytics
 from temba.utils import chunk_list, on_transaction_commit
 from temba.utils.email import is_valid_address
 from temba.utils.export import BaseExportTask, BaseExportAssetStore
@@ -3375,7 +3376,7 @@ class FlowStep(models.Model):
     def from_json(cls, json_obj, flow, run, previous_rule=None):
 
         node = json_obj['node']
-        arrived_on = json_date_to_datetime(json_obj['arrived_on'])
+        arrived_on = iso8601.parse_date(json_obj['arrived_on'])
 
         # find the previous step
         prev_step = FlowStep.objects.filter(run=run).order_by('-left_on').first()

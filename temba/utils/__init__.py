@@ -1,10 +1,10 @@
 from __future__ import print_function, unicode_literals
 
 import calendar
+import iso8601
 import json
 import datetime
 import locale
-
 import pytz
 import resource
 import six
@@ -256,7 +256,7 @@ class DictStruct(object):
         for field in datetime_fields:
             value = self._values.get(field, None)
             if value:
-                self._values[field] = json_date_to_datetime(value)
+                self._values[field] = iso8601.parse_date(value)
 
         self._initialized = True
 
@@ -348,7 +348,7 @@ def datetime_decoder(d):
                 # For Python <= 2.5 strip off microseconds
                 # v = datetime.datetime.strptime(v.rsplit('.', 1)[0],
                 #     '%Y-%m-%dT%H:%M:%S')
-                v = json_date_to_datetime(v)
+                v = iso8601.parse_date(v)
             except ValueError:
                 pass
         elif isinstance(v, (dict, list)):

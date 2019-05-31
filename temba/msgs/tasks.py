@@ -4,6 +4,7 @@ import logging
 import six
 import time
 import json
+import iso8601
 
 from celery.task import task
 from collections import defaultdict
@@ -15,7 +16,7 @@ from django.utils import timezone
 from django_redis import get_redis_connection
 from temba.contacts.models import Contact, STOP_CONTACT_EVENT
 from temba.channels.models import ChannelEvent, CHANNEL_EVENT
-from temba.utils import json_date_to_datetime, chunk_list, analytics
+from temba.utils import chunk_list, analytics
 from temba.utils.mage import handle_new_message, handle_new_contact
 from temba.utils.queues import start_task, complete_task, nonoverlapping_task
 from .models import Msg, Broadcast, BroadcastRecipient, ExportMessagesTask, PENDING, HANDLE_EVENT_TASK, MSG_EVENT
@@ -314,7 +315,7 @@ def handle_event_task():
             process_fire_events(fire_ids)
 
         elif event_task['type'] == TIMEOUT_EVENT:
-            timeout_on = json_date_to_datetime(event_task['timeout_on'])
+            timeout_on = iso8601.parse_date(event_task['timeout_on'])
             process_run_timeout(event_task['run'], timeout_on)
 
         elif event_task['type'] == STOP_CONTACT_EVENT:

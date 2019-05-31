@@ -1,6 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import itertools
+import iso8601
 import six
 
 from django import forms
@@ -25,7 +26,7 @@ from temba.contacts.models import Contact, ContactURN, ContactGroup, ContactGrou
 from temba.flows.models import Flow, FlowRun, FlowStep, FlowStart, RuleSet
 from temba.locations.models import AdminBoundary, BoundaryAlias
 from temba.msgs.models import Broadcast, Msg, Label, LabelCount, SystemLabel
-from temba.utils import str_to_bool, json_date_to_datetime, splitting_getlist
+from temba.utils import str_to_bool, splitting_getlist
 from uuid import UUID
 from .serializers import AdminBoundaryReadSerializer, BroadcastReadSerializer, BroadcastWriteSerializer
 from .serializers import CampaignReadSerializer, CampaignWriteSerializer, CampaignEventReadSerializer
@@ -384,7 +385,7 @@ class ListAPIMixin(mixins.ListModelMixin):
         before = self.request.query_params.get('before')
         if before:
             try:
-                before = json_date_to_datetime(before)
+                before = iso8601.parse_date(before)
                 queryset = queryset.filter(**{field + '__lte': before})
             except Exception:
                 queryset = queryset.filter(pk=-1)
@@ -392,7 +393,7 @@ class ListAPIMixin(mixins.ListModelMixin):
         after = self.request.query_params.get('after')
         if after:
             try:
-                after = json_date_to_datetime(after)
+                after = iso8601.parse_date(after)
                 queryset = queryset.filter(**{field + '__gte': after})
             except Exception:
                 queryset = queryset.filter(pk=-1)
