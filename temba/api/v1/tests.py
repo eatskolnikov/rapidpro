@@ -1031,7 +1031,9 @@ class APITest(TembaTest):
 
         # try to post a new group with a blank name
         response = self.postJSON(url, dict(phone='+250788123456', groups=["  "]))
-        self.assertResponseError(response, 'groups', "This field may not be blank.")
+        body = response.json()
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(body["groups"], {"0": ["This field may not be blank."]})
 
         # try to post a new group with invalid name
         response = self.postJSON(url, dict(phone='+250788123456', groups=["+People"]))
