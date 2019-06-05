@@ -1176,9 +1176,12 @@ class APITest(TembaTest):
             'fields': {'hmmm': "X"}
         })
         self.assertResponseError(response, 'language', "Ensure this field has no more than 3 characters.")
-        self.assertResponseError(response, 'urns', "Invalid URN: 1234556789. Ensure phone numbers contain country codes.")
         self.assertResponseError(response, 'groups', "No such object: 59686b4e-14bc-4160-9376-b649b218c806")
         self.assertResponseError(response, 'fields', "Invalid contact field key: hmmm")
+
+        self.assertEqual(
+            response.json()["urns"], {"0": ["Invalid URN: 1234556789. Ensure phone numbers contain country codes."]}
+        )
 
         # update an existing contact by UUID but don't provide any fields
         response = self.postJSON(url, 'uuid=%s' % jean.uuid, {})
