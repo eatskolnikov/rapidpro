@@ -848,6 +848,7 @@ class CampaignEventsEndpoint(ListAPIMixin, WriteAPIMixin, DeleteAPIMixin, BaseAP
      * **message** - the message to send to the contact if this is a message event (string or translations object)
      * **flow** - the UUID and name of the flow if this is a flow event (object).
      * **created_on** - when the event was created (datetime).
+     * **embedded_data** - the dictionary of extra parameters passed to the flow start of the campaign event (object)
 
     Example:
 
@@ -868,7 +869,8 @@ class CampaignEventsEndpoint(ListAPIMixin, WriteAPIMixin, DeleteAPIMixin, BaseAP
                 "delivery_hour": 9,
                 "flow": {"uuid": "09d23a05-47fe-11e4-bfe9-b8f6b119e9ab", "name": "Survey"},
                 "message": null,
-                "created_on": "2013-08-19T19:11:21.088Z"
+                "created_on": "2013-08-19T19:11:21.088Z",
+                "embedded_data": {"first_name": "Ryan", "last_name": "Lewis"}
             },
             ...
         }
@@ -885,8 +887,9 @@ class CampaignEventsEndpoint(ListAPIMixin, WriteAPIMixin, DeleteAPIMixin, BaseAP
     * **delivery_hour** - the hour of the day to deliver the message (integer 0-24, -1 indicates send at the same hour as the field)
     * **message** - the message to send to the contact (string, required if flow is not specified)
     * **flow** - the UUID of the flow to start the contact down (string, required if message is not specified)
+    * **embedded_data** - the dictionary of extra parameters passed to the flow start of the campaign event (object)
 
-    Example:
+    Example 1:
 
         POST /api/v2/campaign_events.json
         {
@@ -909,7 +912,36 @@ class CampaignEventsEndpoint(ListAPIMixin, WriteAPIMixin, DeleteAPIMixin, BaseAP
             "delivery_hour": -1,
             "message": {"eng": "Feeling sick and helpless, lost the compass where self is."},
             "flow": null,
-            "created_on": "2013-08-19T19:11:21.088453Z"
+            "created_on": "2013-08-19T19:11:21.088453Z",
+            "embedded_data": null
+        }
+
+    Example 2:
+
+        POST /api/v2/campaign_events.json
+        {
+            "campaign": "f14e4ff0-724d-43fe-a953-1d16aefd1c00",
+            "relative_to": "last_hit",
+            "offset": 160,
+            "unit": "weeks",
+            "delivery_hour": -1,
+            "flow": "a9534ff0-724d-43fe-a953-1d16aefc4511",
+            "embedded_data": {"first_name": "Ryan", "last_name": "Lewis"}
+        }
+
+    You will receive an event object as a response if successful:
+
+        {
+            "uuid": "6a6d7531-6b44-4c45-8c33-957ddd8dfabc",
+            "campaign": {"uuid": "f14e4ff0-724d-43fe-a953-1d16aefd1c00", "name": "Hits"},
+            "relative_to": "last_hit",
+            "offset": 160,
+            "unit": "W",
+            "delivery_hour": -1,
+            "message": null,
+            "flow": {"uuid": "a9534ff0-724d-43fe-a953-1d16aefc4511"},
+            "created_on": "2013-08-19T19:11:21.088453Z",
+            "embedded_data": {"first_name": "Ryan", "last_name": "Lewis"}
         }
 
     ## Updating Campaign Events
@@ -925,6 +957,18 @@ class CampaignEventsEndpoint(ListAPIMixin, WriteAPIMixin, DeleteAPIMixin, BaseAP
             "unit": "weeks",
             "delivery_hour": -1,
             "message": "Feeling sick and helpless, lost the compass where self is."
+        }
+
+    Example 2:
+
+        POST /api/v2/campaign_events.json?uuid=6a6d7531-6b44-4c45-8c33-957ddd8dfabc
+        {
+            "relative_to": "last_hit",
+            "offset": 100,
+            "unit": "weeks",
+            "delivery_hour": -1,
+            "flow": "a9534ff0-724d-43fe-a953-1d16aefc4511",
+            "embedded_data": {"first_name": "Ryan", "last_name": "Lewis"}
         }
 
     ## Deleting Campaign Events
@@ -1004,7 +1048,8 @@ class CampaignEventsEndpoint(ListAPIMixin, WriteAPIMixin, DeleteAPIMixin, BaseAP
                 {'name': "unit", 'required': True, 'help': 'The unit of the offset (one of "minutes, "hours", "days", "weeks")'},
                 {'name': "delivery_hour", 'required': True, 'help': "The hour this event should be triggered, or -1 if the event should be sent at the same hour as our date (integer, -1 or 0-23)"},
                 {'name': "message", 'required': False, 'help': "The message that should be sent to the contact when this event is triggered (string)"},
-                {'name': "flow", 'required': False, 'help': "The UUID of the flow that the contact should start when this event is triggered (string)"}
+                {'name': "flow", 'required': False, 'help': "The UUID of the flow that the contact should start when this event is triggered (string)"},
+                {'name': "embedded_data", 'required': False, 'help': "Any extra parameters to pass to the campaign event"}
             ]
         }
 
@@ -2738,6 +2783,7 @@ class RunsEndpoint(ListAPIMixin, BaseAPIView):
      * **modified_on** - when this run was last modified (datetime), filterable as `before` and `after`.
      * **exited_on** - the datetime when this run exited or null if it is still active (datetime).
      * **exit_type** - how the run ended (one of "interrupted", "completed", "expired").
+     * **embedded_fields** - extra parameters passed to the flow, you can get those using @embed into the flow (object)
 
     Note that you cannot filter by `flow` and `contact` at the same time.
 
@@ -2779,7 +2825,10 @@ class RunsEndpoint(ListAPIMixin, BaseAPIView):
                 "created_on": "2015-11-11T13:05:57.457742Z",
                 "modified_on": "2015-11-11T13:05:57.576056Z",
                 "exited_on": "2015-11-11T13:05:57.576056Z",
-                "exit_type": "completed"
+                "exit_type": "completed",
+                "embedded_fields": {
+                    "full_name": "Bob McFlow"
+                }
             },
             ...
         }
@@ -2875,6 +2924,7 @@ class FlowStartsEndpoint(ListAPIMixin, WriteAPIMixin, BaseAPIView):
      * **extra** - the dictionary of extra parameters passed to the flow start (object)
      * **created_on** - the datetime when this flow start was created (datetime)
      * **modified_on** - the datetime when this flow start was modified (datetime)
+     * **embedded_data** - extra parameters passed to the flow (accessible via @embed in your flow) (object)
 
     Example:
 
@@ -2901,6 +2951,9 @@ class FlowStartsEndpoint(ListAPIMixin, WriteAPIMixin, BaseAPIView):
                         "first_name": "Ryan",
                         "last_name": "Lewis"
                     },
+                    "embedded_data": {
+                        "full_name": "Ryan Lewis"
+                    },
                     "created_on": "2013-08-19T19:11:21.082Z",
                     "modified_on": "2013-08-19T19:11:21.082Z"
                 },
@@ -2920,6 +2973,7 @@ class FlowStartsEndpoint(ListAPIMixin, WriteAPIMixin, BaseAPIView):
      * **urns** - the URNs you want to start in this flow (array of up to 100 strings, optional)
      * **restart_participants** - whether to restart participants already in this flow (optional, defaults to true)
      * **extra** - a dictionary of extra parameters to pass to the flow start (accessible via @extra in your flow)
+     * **embedded_data** - extra parameters passed to the flow (accessible via @embed in your flow) (object)
 
     Example:
 
@@ -2929,7 +2983,8 @@ class FlowStartsEndpoint(ListAPIMixin, WriteAPIMixin, BaseAPIView):
             "groups": ["f5901b62-ba76-4003-9c62-72fdacc15515"],
             "contacts": ["f5901b62-ba76-4003-9c62-fjjajdsi15553"],
             "urns": ["twitter:sirmixalot", "tel:+12065551212"],
-            "extra": {"first_name": "Ryan", "last_name": "Lewis"}
+            "extra": {"first_name": "Ryan", "last_name": "Lewis"},
+            "embedded_data": {"full_name": "Ryan Lewis"}
         }
 
     Response is the created flow start:
@@ -2948,6 +3003,9 @@ class FlowStartsEndpoint(ListAPIMixin, WriteAPIMixin, BaseAPIView):
             "extra": {
                 "first_name": "Ryan",
                 "last_name": "Lewis"
+            },
+            "embedded_data": {
+                "full_name": "Ryan Lewis"
             },
             "created_on": "2013-08-19T19:11:21.082Z",
             "modified_on": "2013-08-19T19:11:21.082Z"
@@ -3019,5 +3077,7 @@ class FlowStartsEndpoint(ListAPIMixin, WriteAPIMixin, BaseAPIView):
                             dict(name='restart_participants', required=False,
                                  help="Whether to restart any participants already in the flow"),
                             dict(name='extra', required=False,
-                                 help="Any extra parameters to pass to the flow start")],
+                                 help="Any extra parameters to pass to the flow start"),
+                            dict(name='embedded_data', required=False,
+                                 help="Any embedded data to pass to the flow start")],
                     example=dict(body='{"flow":"f5901b62-ba76-4003-9c62-72fdacc1b7b7","urns":["twitter:sirmixalot"]}'))

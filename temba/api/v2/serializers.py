@@ -214,6 +214,7 @@ class CampaignEventReadSerializer(ReadSerializer):
     flow = serializers.SerializerMethodField()
     relative_to = fields.ContactFieldField()
     unit = serializers.SerializerMethodField()
+    embedded_data = serializers.SerializerMethodField()
     created_on = serializers.DateTimeField(default_timezone=pytz.UTC)
 
     def get_flow(self, obj):
@@ -225,9 +226,16 @@ class CampaignEventReadSerializer(ReadSerializer):
     def get_unit(self, obj):
         return self.UNITS.get(obj.unit)
 
+    def get_embedded_data(self, obj):
+        if not obj.embedded_data:
+            return None
+        else:
+            return json.loads(obj.embedded_data)
+
     class Meta:
         model = CampaignEvent
-        fields = ('uuid', 'campaign', 'relative_to', 'offset', 'unit', 'delivery_hour', 'flow', 'message', 'created_on')
+        fields = ('uuid', 'campaign', 'relative_to', 'offset', 'unit', 'delivery_hour', 'flow', 'message', 'created_on',
+                  'embedded_data')
 
 
 class CampaignEventWriteSerializer(WriteSerializer):
@@ -240,6 +248,16 @@ class CampaignEventWriteSerializer(WriteSerializer):
     relative_to = fields.ContactFieldField(required=True)
     message = fields.TranslatableField(required=False, max_length=Msg.MAX_TEXT_LEN)
     flow = fields.FlowField(required=False)
+    embedded_data = serializers.JSONField(required=False)
+
+    def validate_embedded_data(self, value):
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("Embedded data is not a dict")
+
+        if not value:  # pragma: needs cover
+            return None
+        else:
+            return FlowRun.normalize_fields(value)[0]
 
     def validate_unit(self, value):
         return self.UNITS[value]
@@ -270,6 +288,7 @@ class CampaignEventWriteSerializer(WriteSerializer):
         relative_to = self.validated_data.get('relative_to')
         message = self.validated_data.get('message')
         flow = self.validated_data.get('flow')
+        embedded_data = self.validated_data.get('embedded_data', None)
 
         if self.instance:
             # we are being set to a flow
@@ -277,6 +296,7 @@ class CampaignEventWriteSerializer(WriteSerializer):
                 self.instance.flow = flow
                 self.instance.event_type = CampaignEvent.TYPE_FLOW
                 self.instance.message = None
+                self.instance.embedded_data = json.dumps(dict(embedded_data)) if embedded_data else None
 
             # we are being set to a message
             else:
@@ -305,7 +325,8 @@ class CampaignEventWriteSerializer(WriteSerializer):
         else:
             if flow:
                 self.instance = CampaignEvent.create_flow_event(self.context['org'], self.context['user'], campaign,
-                                                                relative_to, offset, unit, flow, delivery_hour)
+                                                                relative_to, offset, unit, flow, delivery_hour,
+                                                                embedded_data=embedded_data)
             else:
                 translations, base_language = message
                 self.instance = CampaignEvent.create_message_event(self.context['org'], self.context['user'], campaign,
@@ -686,12 +707,16 @@ class FlowRunReadSerializer(ReadSerializer):
     path = serializers.SerializerMethodField()
     values = serializers.SerializerMethodField()
     exit_type = serializers.SerializerMethodField()
+    embedded_fields = serializers.SerializerMethodField()
     created_on = serializers.DateTimeField(default_timezone=pytz.UTC)
     modified_on = serializers.DateTimeField(default_timezone=pytz.UTC)
     exited_on = serializers.DateTimeField(default_timezone=pytz.UTC)
 
     def get_start(self, obj):
         return {'uuid': str(obj.start.uuid)} if obj.start else None
+
+    def get_embedded_fields(self, obj):
+        return json.loads(obj.embedded_fields) if obj.embedded_fields else None
 
     def get_path(self, obj):
         return [{'node': s.step_uuid, 'time': format_datetime(s.arrived_on)} for s in obj.steps.all()]
@@ -714,7 +739,7 @@ class FlowRunReadSerializer(ReadSerializer):
     class Meta:
         model = FlowRun
         fields = ('id', 'flow', 'contact', 'start', 'responded', 'path', 'values',
-                  'created_on', 'modified_on', 'exited_on', 'exit_type')
+                  'created_on', 'modified_on', 'exited_on', 'exit_type', 'embedded_fields')
 
 
 class FlowStartReadSerializer(ReadSerializer):
@@ -730,6 +755,7 @@ class FlowStartReadSerializer(ReadSerializer):
     groups = fields.ContactGroupField(many=True)
     contacts = fields.ContactField(many=True)
     extra = serializers.SerializerMethodField()
+    embedded_data = serializers.SerializerMethodField()
     created_on = serializers.DateTimeField(default_timezone=pytz.UTC)
     modified_on = serializers.DateTimeField(default_timezone=pytz.UTC)
 
@@ -742,9 +768,13 @@ class FlowStartReadSerializer(ReadSerializer):
         else:
             return json.loads(obj.extra)
 
+    def get_embedded_data(self, obj):
+        return json.loads(obj.embedded_data) if obj.embedded_data else None
+
     class Meta:
         model = FlowStart
-        fields = ('id', 'uuid', 'flow', 'status', 'groups', 'contacts', 'restart_participants', 'extra', 'created_on', 'modified_on')
+        fields = ('id', 'uuid', 'flow', 'status', 'groups', 'contacts', 'restart_participants', 'extra', 'created_on',
+                  'modified_on', 'embedded_data')
 
 
 class FlowStartWriteSerializer(WriteSerializer):
@@ -754,8 +784,15 @@ class FlowStartWriteSerializer(WriteSerializer):
     urns = fields.URNListField(required=False)
     restart_participants = serializers.BooleanField(required=False)
     extra = serializers.JSONField(required=False)
+    embedded_data = serializers.JSONField(required=False)
 
     def validate_extra(self, value):
+        if not value:  # pragma: needs cover
+            return None
+        else:
+            return FlowRun.normalize_fields(value)[0]
+
+    def validate_embedded_data(self, value):
         if not value:  # pragma: needs cover
             return None
         else:
@@ -775,6 +812,7 @@ class FlowStartWriteSerializer(WriteSerializer):
         groups = self.validated_data.get('groups', [])
         restart_participants = self.validated_data.get('restart_participants', True)
         extra = self.validated_data.get('extra')
+        embedded_data = self.validated_data.get('embedded_data', None)
 
         # convert URNs to contacts
         for urn in urns:
@@ -784,7 +822,7 @@ class FlowStartWriteSerializer(WriteSerializer):
         # ok, let's go create our flow start, the actual starting will happen in our view
         return FlowStart.create(self.validated_data['flow'], self.context['user'],
                                 restart_participants=restart_participants,
-                                contacts=contacts, groups=groups, extra=extra)
+                                contacts=contacts, groups=groups, extra=extra, embed=embedded_data)
 
 
 class LabelReadSerializer(ReadSerializer):

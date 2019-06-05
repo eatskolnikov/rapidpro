@@ -4,6 +4,35 @@
 -block summary
   -trans "Create a message keyword that launches a flow."
 
+-block fields
+  {{ block.super }}
+
+  #embedded-data
+    .embed-row.embed-template-keyword
+      .embed-field-keyword
+        %input{type:'text', maxlength:'36'}
+        %div.embed-field-slug
+      .embed-value-keyword
+        %input{type:'text'}
+      .embed-remove{onclick:'removeEmbed($(this), true)'}
+        .icon.icon-close
+      .embed-error-message.embed-error-message-field
+      .embed-error-message.embed-error-message-value
+
+    .embed-row.embed-header-keyword.inactive
+      .embed-field-keyword
+        %label
+          -trans "Embedded field"
+      .embed-value-keyword
+        %label
+          -trans "Embedded value"
+
+    .embed-container-keyword
+
+    .add-new-embed
+      %a{href:'javascript:;', onclick:'addEmbed("", "", true)'}
+        -trans "Add embedded data"
+
 -block extra-script
   {{block.super}}
   %script
@@ -13,4 +42,21 @@
       $('#id_keyword_groups').select2({
         containerCssClass: "select2-temba-field"
       });
+
+      $('li#id-trigger-keyword input[type="submit"]').on('click', function(event) {
+        var form = $(this).parent('form');
+        var error = validateEmbeddedData(form, 'embedded_field_keyword', 'embedded_value_keyword');
+        if (error) {
+            event.preventDefault();
+            $(this).removeClass('disabled');
+        } else {
+            form.submit();
+        }
+      });
+
     });
+    {% if embedded_data %}
+        {% for embed in embedded_data %}
+            addEmbed('{{ embed.field }}', '{{ embed.value }}', true);
+        {% endfor %}
+    {% endif %}

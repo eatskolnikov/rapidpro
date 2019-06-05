@@ -22,7 +22,7 @@ from temba.schedules.views import BaseScheduleForm
 from temba.channels.models import Channel, ChannelType
 from temba.flows.models import Flow
 from temba.msgs.views import ModalMixin
-from temba.utils import analytics, on_transaction_commit
+from temba.utils import analytics, on_transaction_commit, build_embedded_data
 from temba.utils.views import BaseActionForm
 from .models import Trigger
 
@@ -454,6 +454,17 @@ class TriggerCRUDL(SmartCRUDL):
                 context['days'] = self.get_object().schedule.explode_bitmask()
             context['user_tz'] = get_current_timezone_name()
             context['user_tz_offset'] = int(timezone.localtime(timezone.now()).utcoffset().total_seconds() / 60)
+
+            embedded_data = {}
+            if self.request.method == 'POST':
+                embedded_data = build_embedded_data(self.request.POST, 'embedded_field', 'embedded_value')
+
+            if not embedded_data and self.object.embedded_data:
+                embedded_data = json.loads(self.object.embedded_data)
+
+            context['embedded_data'] = [{'field': key, 'value': embedded_data[key]} for key in sorted(embedded_data.keys())] \
+                if embedded_data else []
+
             return context
 
         def form_invalid(self, form):
@@ -480,6 +491,9 @@ class TriggerCRUDL(SmartCRUDL):
         def form_valid(self, form):
             trigger = self.object
             trigger_type = trigger.trigger_type
+
+            embedded_data = build_embedded_data(self.request.POST, 'embedded_field', 'embedded_value')
+            trigger.embedded_data = json.dumps(embedded_data) if embedded_data else None
 
             if trigger_type == Trigger.TYPE_SCHEDULE:
                 schedule = trigger.schedule
@@ -602,6 +616,10 @@ class TriggerCRUDL(SmartCRUDL):
         def pre_save(self, obj, *args, **kwargs):
             obj = super(TriggerCRUDL.CreateTrigger, self).pre_save(obj, *args, **kwargs)
             obj.org = self.request.user.get_org()
+
+            embedded_data = build_embedded_data(self.request.POST, 'embedded_field_keyword', 'embedded_value_keyword')
+            obj.embedded_data = json.dumps(embedded_data) if embedded_data else None
+
             return obj
 
         def form_valid(self, form):
@@ -612,6 +630,19 @@ class TriggerCRUDL(SmartCRUDL):
             kwargs = super(TriggerCRUDL.Keyword, self).get_form_kwargs()
             kwargs['auto_id'] = "id_keyword_%s"
             return kwargs
+
+        def get_context_data(self, **kwargs):
+            context = super(TriggerCRUDL.Keyword, self).get_context_data(**kwargs)
+
+            embedded_data = {}
+            if self.request.method == 'POST':
+                embedded_data = build_embedded_data(self.request.POST, 'embedded_field_keyword',
+                                                    'embedded_value_keyword')
+
+            context['embedded_data'] = [{'field': key, 'value': embedded_data[key]} for key in sorted(embedded_data.keys())] \
+                if embedded_data else []
+
+            return context
 
     class Register(CreateTrigger):
         form_class = RegisterTriggerForm
@@ -672,6 +703,14 @@ class TriggerCRUDL(SmartCRUDL):
             context = super(TriggerCRUDL.Schedule, self).get_context_data(**kwargs)
             context['user_tz'] = get_current_timezone_name()
             context['user_tz_offset'] = int(timezone.localtime(timezone.now()).utcoffset().total_seconds() / 60)
+
+            embedded_data = {}
+            if self.request.method == 'POST':
+                embedded_data = build_embedded_data(self.request.POST, 'embedded_field', 'embedded_value')
+
+            context['embedded_data'] = [{'field': key, 'value': embedded_data[key]} for key in sorted(embedded_data.keys())] \
+                if embedded_data else []
+
             return context
 
         def form_invalid(self, form):
@@ -718,12 +757,15 @@ class TriggerCRUDL(SmartCRUDL):
 
             recipients = self.form.cleaned_data['omnibox']
 
+            embedded_data = build_embedded_data(self.request.POST, 'embedded_field', 'embedded_value')
+
             trigger = Trigger.objects.create(flow=self.form.cleaned_data['flow'],
                                              org=self.request.user.get_org(),
                                              schedule=schedule,
                                              trigger_type=Trigger.TYPE_SCHEDULE,
                                              created_by=self.request.user,
-                                             modified_by=self.request.user)
+                                             modified_by=self.request.user,
+                                             embedded_data=json.dumps(embedded_data) if embedded_data else None)
 
             for group in recipients['groups']:
                 trigger.groups.add(group)

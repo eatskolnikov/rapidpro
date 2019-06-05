@@ -66,7 +66,10 @@
               .start-flow
                 Start the
                 %a.href{ href: "{% url 'flows.flow_editor' event.flow.uuid %}" }= event.flow.name
-                flow.
+                flow
+                -if event.embedded_data
+                  |
+                  -trans "Contains embedded data"
 
         -if not forloop.last
           %tr.break
@@ -201,7 +204,22 @@
       $(".add-event").live('click', function(){
         var modal = new Modax('Add Event','{% url "campaigns.campaignevent_create" %}?campaign={{ object.id }}');
         modal.setIcon('icon-instant');
-        modal.setListeners({ onFormLoaded: function() { $('#id_message').focus() }});
+        modal.setListeners({
+          onFormLoaded: function() {
+            $('#id_message').focus()
+          },
+          onPrimary: function() {
+            var form = modal.ele.find('form');
+            var error = validateEmbeddedData(form, 'embedded_field', 'embedded_value');
+            if (error) {
+              modal.focusFirstInput();
+              var divForm = $('.modal-body').find('input.invalid');
+              $('.modal-body').scrollTop(divForm[0].offsetTop - 10);
+            } else {
+              modal.submit();
+            }
+          }
+        }, false);
         modal.setRedirectOnSuccess(true);
         modal.show();
       });

@@ -748,7 +748,8 @@ class APITest(TembaTest):
             'delivery_hour': 12,
             'flow': {'uuid': flow.uuid, 'name': "Color Flow"},
             'message': None,
-            'created_on': format_datetime(event2.created_on)
+            'created_on': format_datetime(event2.created_on),
+            'embedded_data': None
         }, {
             'uuid': event1.uuid,
             'campaign': {'uuid': campaign1.uuid, 'name': "Reminders"},
@@ -758,7 +759,8 @@ class APITest(TembaTest):
             'delivery_hour': -1,
             'flow': None,
             'message': {'base': "Don't forget to brush your teeth"},
-            'created_on': format_datetime(event1.created_on)
+            'created_on': format_datetime(event1.created_on),
+            'embedded_data': None
         }])
 
         # filter by UUID
@@ -2199,7 +2201,8 @@ class APITest(TembaTest):
             'created_on': format_datetime(frank_run2.created_on),
             'modified_on': format_datetime(frank_run2.modified_on),
             'exited_on': None,
-            'exit_type': None
+            'exit_type': None,
+            'embedded_fields': None
         })
         self.assertEqual(resp_json['results'][4], {
             'id': joe_run1.pk,
@@ -2223,7 +2226,8 @@ class APITest(TembaTest):
             'created_on': format_datetime(joe_run1.created_on),
             'modified_on': format_datetime(joe_run1.modified_on),
             'exited_on': format_datetime(joe_run1.exited_on),
-            'exit_type': 'completed'
+            'exit_type': 'completed',
+            'embedded_fields': None
         })
 
         # check when all broadcasts have been purged
@@ -2651,6 +2655,7 @@ class APITest(TembaTest):
             'extra': {"first_name": "Ryan", "last_name": "Lewis"},
             'created_on': format_datetime(start2.created_on),
             'modified_on': format_datetime(start2.modified_on),
+            'embedded_data': None
         })
 
         # check filtering by UUID

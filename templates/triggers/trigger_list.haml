@@ -189,6 +189,15 @@
                               - else
                                 -trans "not scheduled"
 
+                        -if obj.embedded_data
+                          |
+                          -trans "Contains "
+                          - if org_perms.triggers.trigger_update
+                            %a.update-trigger{data-object-id:"{{ obj.id }}", href:"#"}
+                              -trans "embedded data"
+                          - else
+                            -trans "Contains embedded data"
+
                         -if obj.last_triggered
                           %span.count
                             %nobr
@@ -238,9 +247,20 @@
 
   :javascript
     $(document).on('click', '.update-trigger', function(e){
-       var modal = new Modax('{% trans "Update Trigger" %}', '/trigger/update/' + $(this).data("object-id") + '/');
-       modal.setIcon('icon-feed');
-       modal.setRedirectOnSuccess(true);
-       modal.show();
+      var modal = new Modax('{% trans "Update Trigger" %}', '/trigger/update/' + $(this).data("object-id") + '/');
+      modal.setIcon('icon-feed');
+      modal.setRedirectOnSuccess(true);
+      modal.setListeners({onPrimary: function(){
+        var form = modal.ele.find('form');
+        var error = validateEmbeddedData(form, 'embedded_field', 'embedded_value');
+        if (error) {
+          modal.focusFirstInput();
+          var divForm = $('.modal-body').find('input.invalid');
+          $('.modal-body').scrollTop(divForm[0].offsetTop - 10);
+        } else {
+          modal.submit();
+        }
+      }}, false);
+      modal.show();
     });
     
