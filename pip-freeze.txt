@@ -19,7 +19,7 @@ cookies==2.2.1
 coverage==4.4.1
 cryptography==2.3.1
 dj-database-url==0.4.2
-Django==1.11.17
+django==2.1.5
 django-appconf==1.0.2
 django-compressor==2.1.1
 django-countries==4.6.1
@@ -35,7 +35,7 @@ django-rosetta==0.7.13
 Django-Select2==5.10.0
 django-storages==1.5.2
 django-timezone-field==2.0
-djangorestframework==3.5.1
+djangorestframework==3.8.2
 docutils==0.13.1
 enum34==1.1.6
 et-xmlfile==1.0.1
@@ -113,7 +113,7 @@ s3cmd==2.0.2
 s3transfer==0.1.10
 selenium==3.4.3
 six==1.11.0
-smartmin==1.11.5
+smartmin==2.1.1
 sorl-thumbnail==12.5.0
 sqlparse==0.2.3
 stop-words==2015.2.23.1
