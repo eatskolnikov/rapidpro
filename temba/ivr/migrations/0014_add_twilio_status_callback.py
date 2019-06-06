@@ -3,7 +3,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 from django.db import migrations
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
 from twilio.rest import TwilioRestClient, TwilioException
 import json

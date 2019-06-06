@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
 from django.db import migrations
 from temba.orgs.models import Org, NEXMO_UUID, NEXMO_KEY, NEXMO_SECRET, NEXMO_APP_ID

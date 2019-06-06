@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import json
 import traceback
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponseRedirect, JsonResponse
 from smartmin.views import SmartCRUDL, SmartCreateView
 from temba.orgs.views import OrgPermsMixin

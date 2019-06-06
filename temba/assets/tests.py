@@ -1,6 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from temba.contacts.models import ExportContactsTask
 from temba.flows.models import ExportFlowResultsTask
 from temba.msgs.models import SystemLabel, ExportMessagesTask

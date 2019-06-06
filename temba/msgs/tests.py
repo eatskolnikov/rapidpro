@@ -7,7 +7,7 @@ import six
 
 from datetime import datetime, timedelta
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
 from django_redis import get_redis_connection
 from django.db import transaction

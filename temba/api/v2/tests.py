@@ -8,7 +8,7 @@ import six
 from datetime import datetime
 from django.contrib.auth.models import Group
 from django.contrib.gis.geos import GEOSGeometry
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
 from django.db import connection
 from django.db.models import Q

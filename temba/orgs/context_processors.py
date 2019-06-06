@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from collections import defaultdict
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
 from .models import get_stripe_credentials, UNREAD_INBOX_MSGS, UNREAD_FLOW_MSGS
 

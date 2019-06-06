@@ -7,7 +7,7 @@ import six
 
 from datetime import datetime, date, timedelta
 from django.core.files.base import ContentFile
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
 from django.db.models import Value as DbValue
 from django.db.models.functions import Substr, Concat

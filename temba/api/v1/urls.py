@@ -1,7 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.conf.urls import url
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.http import HttpResponseGone
 from django.views.generic.base import RedirectView
 from rest_framework.urlpatterns import format_suffix_patterns

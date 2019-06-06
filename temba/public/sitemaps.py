@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from django.contrib.sitemaps import Sitemap
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from temba.settings import SITEMAP
 from .models import Video
 

@@ -16,7 +16,7 @@ from cgi import parse_header, parse_multipart
 from datetime import datetime, timedelta
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import connection
 from django.test import LiveServerTestCase
 from django.test.runner import DiscoverRunner

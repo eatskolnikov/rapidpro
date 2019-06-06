@@ -20,7 +20,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import models
 from django.db.models import Q, Max, Sum
 from django.db.models.signals import pre_save

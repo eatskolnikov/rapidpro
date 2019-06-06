@@ -22,7 +22,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.core.files.storage import default_storage, FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.models import User, Group
 from django.db import models, connection as db_connection
 from django.db.models import Q, Count, QuerySet, Sum, Max

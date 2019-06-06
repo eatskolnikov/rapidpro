@@ -7,7 +7,7 @@ from datetime import timedelta
 
 from django import forms
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib import messages
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import RedirectView

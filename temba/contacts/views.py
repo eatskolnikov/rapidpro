@@ -10,7 +10,7 @@ from django import forms
 from django.conf import settings
 from django.contrib import messages
 from django.core.files.base import ContentFile
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import IntegrityError
 from django.db.models import Q
 from django.db.models.functions import Upper

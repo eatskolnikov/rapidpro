@@ -12,6 +12,18 @@ from smartmin.models import SmartModel
 logger = logging.getLogger(__name__)
 
 
+# default manager for AdminBoundary, doesn't load geometries
+class NoGeometryManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().defer("geometry", "simplified_geometry")
+
+
+# optional 'geometries' manager for AdminBoundary, loads everything
+class GeometryManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset()
+
+
 @six.python_2_unicode_compatible
 class AdminBoundary(MPTTModel, models.Model):
     """
@@ -35,7 +47,7 @@ class AdminBoundary(MPTTModel, models.Model):
     level = models.IntegerField(help_text="The level of the boundary, 0 for country, 1 for state, 2 for district, 3 for ward")
 
     parent = TreeForeignKey('self', null=True, blank=True, related_name='children', db_index=True,
-                            help_text="The parent to this political boundary if any")
+                            help_text="The parent to this political boundary if any", on_delete=models.PROTECT)
 
     geometry = models.MultiPolygonField(null=True,
                                         help_text="The full geometry of this administrative boundary")
@@ -43,7 +55,9 @@ class AdminBoundary(MPTTModel, models.Model):
     simplified_geometry = models.MultiPolygonField(null=True,
                                                    help_text="The simplified geometry of this administrative boundary")
 
-    objects = models.GeoManager()
+    objects = NoGeometryManager()
+
+    geometries = GeometryManager()
 
     @staticmethod
     def get_geojson_dump(features):
@@ -109,9 +123,10 @@ class BoundaryAlias(SmartModel):
     """
     name = models.CharField(max_length=128, help_text="The name for our alias")
 
-    boundary = models.ForeignKey(AdminBoundary, help_text='The admin boundary this alias applies to', related_name='aliases')
+    boundary = models.ForeignKey(AdminBoundary, help_text='The admin boundary this alias applies to', related_name='aliases',
+                                 on_delete=models.PROTECT)
 
-    org = models.ForeignKey('orgs.Org', help_text="The org that owns this alias")
+    org = models.ForeignKey('orgs.Org', help_text="The org that owns this alias", on_delete=models.PROTECT)
 
     @classmethod
     def create(cls, org, user, boundary, name):

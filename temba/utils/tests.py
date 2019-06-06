@@ -17,7 +17,7 @@ from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.core import mail
 from django.core.management import call_command, CommandError
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.test import override_settings, SimpleTestCase
 from django.utils import timezone
 from django_redis import get_redis_connection

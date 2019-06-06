@@ -15,7 +15,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db.models import Count, Min, Max, Sum
 from django import forms
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse

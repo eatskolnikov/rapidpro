@@ -2,7 +2,7 @@ from __future__ import absolute_import, unicode_literals
 
 from datetime import timedelta
 from django.db import models
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 from temba.channels.models import ChannelSession, Channel, ChannelLog, ChannelType

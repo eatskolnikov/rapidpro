@@ -11,7 +11,7 @@ from collections import OrderedDict
 from datetime import timedelta
 from django.db.models import Q
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.contrib.auth.models import User, Group
 from django.db import models
 from django.utils import timezone

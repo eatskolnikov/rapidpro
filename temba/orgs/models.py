@@ -25,7 +25,7 @@ from django.conf import settings
 from django.contrib.auth.models import User, Group
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.db import models, transaction
@@ -258,7 +258,7 @@ class Org(SmartModel):
     webhook_events = models.IntegerField(default=0, verbose_name=_("Webhook Events"),
                                          help_text=_("Which type of actions will trigger webhook events."))
 
-    country = models.ForeignKey('locations.AdminBoundary', null=True, blank=True, on_delete=models.SET_NULL,
+    country = models.ForeignKey('locations.AdminBoundary', null=True, blank=True, on_delete=models.PROTECT,
                                 help_text="The country this organization should map results for.")
 
     msg_last_viewed = models.DateTimeField(verbose_name=_("Message Last Viewed"), auto_now_add=True)
@@ -287,7 +287,8 @@ class Org(SmartModel):
     surveyor_password = models.CharField(null=True, max_length=128, default=None,
                                          help_text=_('A password that allows users to register as surveyors'))
 
-    parent = models.ForeignKey('orgs.Org', null=True, blank=True, help_text=_('The parent org that manages this org'))
+    parent = models.ForeignKey('orgs.Org', null=True, blank=True, help_text=_('The parent org that manages this org'),
+                               on_delete=models.PROTECT)
 
     @classmethod
     def get_unique_slug(cls, name):
@@ -2340,7 +2341,7 @@ class Language(SmartModel):
 
     iso_code = models.CharField(max_length=4)
 
-    org = models.ForeignKey(Org, verbose_name=_("Org"), related_name="languages")
+    org = models.ForeignKey(Org, verbose_name=_("Org"), related_name="languages", on_delete=models.PROTECT)
 
     @classmethod
     def create(cls, org, user, name, iso_code):
@@ -2382,7 +2383,8 @@ class Invitation(SmartModel):
     An Invitation to an e-mail address to join an Org with specific roles.
     """
     org = models.ForeignKey(Org, verbose_name=_("Org"), related_name="invitations",
-                            help_text=_("The organization to which the account is invited to view"))
+                            help_text=_("The organization to which the account is invited to view"),
+                            on_delete=models.PROTECT)
 
     email = models.EmailField(verbose_name=_("Email"), help_text=_("The email to which we send the invitation of the viewer"))
 
@@ -2439,7 +2441,7 @@ class UserSettings(models.Model):
     """
     User specific configuration
     """
-    user = models.ForeignKey(User, related_name='settings')
+    user = models.ForeignKey(User, related_name='settings', on_delete=models.PROTECT)
     language = models.CharField(max_length=8, choices=settings.LANGUAGES, default="en-us",
                                 help_text=_('Your preferred language'))
     tel = models.CharField(verbose_name=_("Phone Number"), max_length=16, null=True, blank=True,

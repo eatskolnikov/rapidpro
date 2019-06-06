@@ -8,7 +8,7 @@ import uuid
 from datetime import datetime, timedelta
 from mock import patch
 
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.conf import settings
 from django.utils import timezone
 from django_redis import get_redis_connection

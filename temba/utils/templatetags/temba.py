@@ -6,7 +6,7 @@ from django.template import TemplateSyntaxError
 from django.template.defaultfilters import register
 from django.utils.translation import ugettext_lazy as _
 from django.conf import settings
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.translation import ugettext, ungettext_lazy
 from ...campaigns.models import Campaign
 from ...flows.models import Flow

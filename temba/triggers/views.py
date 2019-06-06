@@ -5,7 +5,7 @@ import regex
 
 from datetime import timedelta
 from django import forms
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.timezone import get_current_timezone_name
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponseRedirect, HttpResponse

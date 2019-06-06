@@ -8,7 +8,7 @@ import six
 from datetime import datetime, timedelta
 from django.contrib.auth.models import Group
 from django.contrib.gis.geos import GEOSGeometry
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.db import connection
 from django.utils import timezone
 from django.utils.http import urlquote_plus

@@ -6,7 +6,7 @@ import six
 import time
 
 from datetime import datetime, timedelta
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils import timezone
 from temba.msgs.models import Broadcast
 from temba.tests import TembaTest
