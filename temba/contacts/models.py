@@ -337,7 +337,7 @@ class ContactField(SmartModel):
 
     uuid = models.UUIDField(unique=True, default=uuid.uuid4)
 
-    org = models.ForeignKey(Org, verbose_name=_("Org"), related_name="contactfields")
+    org = models.ForeignKey(Org, verbose_name=_("Org"), related_name="contactfields", on_delete=models.PROTECT)
 
     label = models.CharField(verbose_name=_("Label"), max_length=MAX_LABEL_LEN)
 
@@ -475,7 +475,8 @@ class Contact(TembaModel):
                             help_text=_("The name of this contact"))
 
     org = models.ForeignKey(Org, verbose_name=_("Org"), related_name="org_contacts",
-                            help_text=_("The organization that this contact belongs to"))
+                            help_text=_("The organization that this contact belongs to"),
+                            on_delete=models.PROTECT)
 
     is_blocked = models.BooleanField(verbose_name=_("Is Blocked"), default=False,
                                      help_text=_("Whether this contact has been blocked"))
@@ -2044,7 +2045,8 @@ class ContactURN(models.Model):
     ANON_MASK_HTML = '\u2022' * 8  # Pretty HTML version of anon mask
 
     contact = models.ForeignKey(Contact, null=True, blank=True, related_name='urns',
-                                help_text="The contact that this URN is for, can be null")
+                                help_text="The contact that this URN is for, can be null",
+                                on_delete=models.PROTECT)
 
     identity = models.CharField(max_length=255,
                                 help_text="The Universal Resource Name as a string, excluding display if present. ex: tel:+250788383383")
@@ -2059,13 +2061,15 @@ class ContactURN(models.Model):
                               help_text="The scheme for this URN, broken out for optimization reasons, ex: tel")
 
     org = models.ForeignKey(Org,
-                            help_text="The organization for this URN, can be null")
+                            help_text="The organization for this URN, can be null",
+                            on_delete=models.PROTECT)
 
     priority = models.IntegerField(default=PRIORITY_STANDARD,
                                    help_text="The priority of this URN for the contact it is associated with")
 
     channel = models.ForeignKey(Channel, null=True, blank=True,
-                                help_text="The preferred channel for this URN")
+                                help_text="The preferred channel for this URN",
+                                on_delete=models.PROTECT)
 
     auth = models.TextField(null=True,
                             help_text=_("Any authentication information needed by this URN"))
@@ -2236,9 +2240,10 @@ class ContactGroup(TembaModel):
     contacts = models.ManyToManyField(Contact, verbose_name=_("Contacts"), related_name='all_groups')
 
     org = models.ForeignKey(Org, related_name='all_groups',
-                            verbose_name=_("Org"), help_text=_("The organization this group is part of"))
+                            verbose_name=_("Org"), help_text=_("The organization this group is part of"),
+                            on_delete=models.PROTECT)
 
-    import_task = models.ForeignKey(ImportTask, null=True, blank=True)
+    import_task = models.ForeignKey(ImportTask, null=True, blank=True, on_delete=models.PROTECT)
 
     query = models.TextField(null=True, help_text=_("The membership query for this group"))
 
@@ -2508,7 +2513,8 @@ class ContactGroupCount(SquashableModel):
     """
     SQUASH_OVER = ('group_id',)
 
-    group = models.ForeignKey(ContactGroup, related_name='counts', db_index=True)
+    group = models.ForeignKey(ContactGroup, related_name='counts', db_index=True,
+                              on_delete=models.PROTECT)
     count = models.IntegerField(default=0)
 
     @classmethod
@@ -2557,7 +2563,7 @@ class ExportContactsTask(BaseExportTask):
     email_template = 'contacts/email/contacts_export_download'
 
     group = models.ForeignKey(ContactGroup, null=True, related_name='exports',
-                              help_text=_("The unique group to export"))
+                              help_text=_("The unique group to export"), on_delete=models.PROTECT)
     search = models.TextField(null=True, blank=True, help_text=_("The search query"))
 
     @classmethod

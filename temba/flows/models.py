@@ -134,12 +134,15 @@ def edit_distance(s1, s2):  # pragma: no cover
 
 @six.python_2_unicode_compatible
 class FlowSession(models.Model):
-    org = models.ForeignKey(Org, help_text="The organization this session belongs to")
+    org = models.ForeignKey(Org, help_text="The organization this session belongs to",
+                            on_delete=models.PROTECT)
 
-    contact = models.ForeignKey('contacts.Contact', help_text="The contact that this session is with")
+    contact = models.ForeignKey('contacts.Contact', help_text="The contact that this session is with",
+                                on_delete=models.PROTECT)
 
     connection = models.OneToOneField('channels.ChannelSession', null=True, related_name='session',
-                                      help_text=_("The channel connection used for flow sessions over IVR or USSD"))
+                                      help_text=_("The channel connection used for flow sessions over IVR or USSD"),
+                                      on_delete=models.PROTECT)
 
     @classmethod
     def create(cls, contact, connection):
@@ -216,7 +219,7 @@ class Flow(TembaModel):
     labels = models.ManyToManyField('FlowLabel', related_name='flows', verbose_name=_("Labels"), blank=True,
                                     help_text=_("Any labels on this flow"))
 
-    org = models.ForeignKey(Org, related_name='flows')
+    org = models.ForeignKey(Org, related_name='flows', on_delete=models.PROTECT)
 
     entry_uuid = models.CharField(null=True, max_length=36, unique=True)
 
@@ -242,7 +245,8 @@ class Flow(TembaModel):
                                     help_text=_("When this item was saved"))
 
     saved_by = models.ForeignKey(User, related_name="flow_saves",
-                                 help_text=_("The user which last saved this flow"))
+                                 help_text=_("The user which last saved this flow"),
+                                 on_delete=models.PROTECT)
 
     base_language = models.CharField(max_length=4, null=True, blank=True,
                                      help_text=_('The primary language for editing this flow'),
@@ -2738,11 +2742,11 @@ class Flow(TembaModel):
 class FlowImage(TembaModel):
     uuid = models.UUIDField(unique=True, default=uuid4)
 
-    org = models.ForeignKey(Org, related_name='flow_images', db_index=False)
+    org = models.ForeignKey(Org, related_name='flow_images', db_index=False, on_delete=models.PROTECT)
 
-    flow = models.ForeignKey(Flow, related_name='flow_images')
+    flow = models.ForeignKey(Flow, related_name='flow_images', on_delete=models.PROTECT)
 
-    contact = models.ForeignKey(Contact, related_name='flow_images')
+    contact = models.ForeignKey(Contact, related_name='flow_images', on_delete=models.PROTECT)
 
     name = models.CharField(help_text='Image name', max_length=255)
 
@@ -2881,17 +2885,19 @@ class FlowRun(models.Model):
 
     uuid = models.UUIDField(unique=True, default=uuid4)
 
-    org = models.ForeignKey(Org, related_name='runs', db_index=False)
+    org = models.ForeignKey(Org, related_name='runs', db_index=False, on_delete=models.PROTECT)
 
-    flow = models.ForeignKey(Flow, related_name='runs')
+    flow = models.ForeignKey(Flow, related_name='runs', on_delete=models.PROTECT)
 
-    contact = models.ForeignKey(Contact, related_name='runs')
+    contact = models.ForeignKey(Contact, related_name='runs', on_delete=models.PROTECT)
 
     session = models.ForeignKey(FlowSession, related_name='runs', null=True,
-                                help_text=_("The session that handled this flow run, only for voice flows"))
+                                help_text=_("The session that handled this flow run, only for voice flows"),
+                                on_delete=models.PROTECT)
 
     connection = models.ForeignKey('channels.ChannelSession', related_name='runs', null=True, blank=True,
-                                   help_text=_("The session that handled this flow run, only for voice flows"))
+                                   help_text=_("The session that handled this flow run, only for voice flows"),
+                                   on_delete=models.PROTECT)
 
     is_active = models.BooleanField(default=True,
                                     help_text=_("Whether this flow run is currently active"))
@@ -2923,12 +2929,15 @@ class FlowRun(models.Model):
     responded = models.BooleanField(default=False, help_text='Whether contact has responded in this run')
 
     start = models.ForeignKey('flows.FlowStart', null=True, blank=True, related_name='runs',
-                              help_text=_("The FlowStart objects that started this run"))
+                              help_text=_("The FlowStart objects that started this run"),
+                              on_delete=models.PROTECT)
 
     submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True,
-                                     help_text="The user which submitted this flow run")
+                                     help_text="The user which submitted this flow run",
+                                     on_delete=models.PROTECT)
 
-    parent = models.ForeignKey('flows.FlowRun', null=True, help_text=_("The parent run that triggered us"))
+    parent = models.ForeignKey('flows.FlowRun', null=True, help_text=_("The parent run that triggered us"),
+                               on_delete=models.PROTECT)
 
     results = models.TextField(null=True,
                                help_text=_("The results collected during this flow run in JSON format"))
@@ -3382,9 +3391,9 @@ class FlowStep(models.Model):
     STEP_TYPE_CHOICES = ((TYPE_RULE_SET, "RuleSet"),
                          (TYPE_ACTION_SET, "ActionSet"))
 
-    run = models.ForeignKey(FlowRun, related_name='steps')
+    run = models.ForeignKey(FlowRun, related_name='steps', on_delete=models.PROTECT)
 
-    contact = models.ForeignKey(Contact, related_name='flow_steps')
+    contact = models.ForeignKey(Contact, related_name='flow_steps', on_delete=models.PROTECT)
 
     step_type = models.CharField(max_length=1, choices=STEP_TYPE_CHOICES, help_text=_("What type of node was visited"))
 
@@ -3674,7 +3683,7 @@ class RuleSet(models.Model):
 
     uuid = models.CharField(max_length=36, unique=True)
 
-    flow = models.ForeignKey(Flow, related_name='rule_sets')
+    flow = models.ForeignKey(Flow, related_name='rule_sets', on_delete=models.PROTECT)
 
     label = models.CharField(max_length=64, null=True, blank=True,
                              help_text=_("The label for this field"))
@@ -4143,7 +4152,7 @@ class RuleSet(models.Model):
 @six.python_2_unicode_compatible
 class ActionSet(models.Model):
     uuid = models.CharField(max_length=36, unique=True)
-    flow = models.ForeignKey(Flow, related_name='action_sets')
+    flow = models.ForeignKey(Flow, related_name='action_sets', on_delete=models.PROTECT)
 
     destination = models.CharField(max_length=36, null=True)
     destination_type = models.CharField(max_length=1, choices=FlowStep.STEP_TYPE_CHOICES, null=True)
@@ -4233,7 +4242,7 @@ class FlowRevision(SmartModel):
     """
     JSON definitions for previous flow revisions
     """
-    flow = models.ForeignKey(Flow, related_name='revisions')
+    flow = models.ForeignKey(Flow, related_name='revisions', on_delete=models.PROTECT)
 
     definition = models.TextField(help_text=_("The JSON flow definition"))
 
@@ -4352,7 +4361,8 @@ class FlowCategoryCount(SquashableModel):
     """
     SQUASH_OVER = ('flow_id', 'node_uuid', 'result_key', 'result_name', 'category_name')
 
-    flow = models.ForeignKey(Flow, related_name='category_counts', help_text="The flow the result belongs to")
+    flow = models.ForeignKey(Flow, related_name='category_counts', help_text="The flow the result belongs to",
+                             on_delete=models.PROTECT)
     node_uuid = models.UUIDField(db_index=True)
     result_key = models.CharField(max_length=128, help_text="The sluggified key for the result")
     result_name = models.CharField(max_length=128, help_text="The result the category belongs to")
@@ -4383,7 +4393,8 @@ class FlowPathCount(SquashableModel):
     """
     SQUASH_OVER = ('flow_id', 'from_uuid', 'to_uuid', 'period')
 
-    flow = models.ForeignKey(Flow, related_name='activity', help_text=_("The flow where the activity occurred"))
+    flow = models.ForeignKey(Flow, related_name='activity', help_text=_("The flow where the activity occurred"),
+                             on_delete=models.PROTECT)
     from_uuid = models.UUIDField(help_text=_("Which flow node they came from"))
     to_uuid = models.UUIDField(null=True, help_text=_("Which flow node they went to"))
     period = models.DateTimeField(help_text=_("When the activity occured with hourly precision"))
@@ -4442,7 +4453,7 @@ class FlowPathRecentMessage(models.Model):
 
     from_uuid = models.UUIDField(help_text=_("Which flow node they came from"))
     to_uuid = models.UUIDField(help_text=_("Which flow node they went to"))
-    run = models.ForeignKey(FlowRun, related_name='recent_messages')
+    run = models.ForeignKey(FlowRun, related_name='recent_messages', on_delete=models.PROTECT)
     text = models.TextField(help_text=_("The message text"))
     created_on = models.DateTimeField(help_text=_("When the message arrived"))
 

@@ -305,7 +305,7 @@ class Channel(TembaModel):
                            help_text=_("Country which this channel is for"))
 
     org = models.ForeignKey(Org, verbose_name=_("Org"), related_name="channels", blank=True, null=True,
-                            help_text=_("Organization using this channel"))
+                            help_text=_("Organization using this channel"), on_delete=models.PROTECT)
 
     gcm_id = models.CharField(verbose_name=_("GCM ID"), max_length=255, blank=True, null=True,
                               help_text=_("The registration id for using Google Cloud Messaging"))
@@ -338,7 +338,8 @@ class Channel(TembaModel):
                             help_text=_("The roles this channel can fulfill"))
 
     parent = models.ForeignKey('self', blank=True, null=True,
-                               help_text=_("The channel this channel is working on behalf of"))
+                               help_text=_("The channel this channel is working on behalf of"),
+                               on_delete=models.PROTECT)
 
     bod = models.TextField(verbose_name=_("Optional Data"), null=True,
                            help_text=_("Any channel specific state data"))
@@ -1342,7 +1343,8 @@ class ChannelCount(SquashableModel):
                           (ERROR_LOG_TYPE, _("Error Log Record")))
 
     channel = models.ForeignKey(Channel,
-                                help_text=_("The channel this is a daily summary count for"))
+                                help_text=_("The channel this is a daily summary count for"),
+                                on_delete=models.PROTECT)
     count_type = models.CharField(choices=COUNT_TYPE_CHOICES, max_length=2,
                                   help_text=_("What type of message this row is counting"))
     day = models.DateField(null=True, help_text=_("The day this count is for"))
@@ -1418,15 +1420,18 @@ class ChannelEvent(models.Model):
     CALL_TYPES = {TYPE_CALL_OUT, TYPE_CALL_OUT_MISSED, TYPE_CALL_IN, TYPE_CALL_IN_MISSED}
 
     org = models.ForeignKey(Org, verbose_name=_("Org"),
-                            help_text=_("The org this event is connected to"))
+                            help_text=_("The org this event is connected to"), on_delete=models.PROTECT)
     channel = models.ForeignKey(Channel, verbose_name=_("Channel"),
-                                help_text=_("The channel on which this event took place"))
+                                help_text=_("The channel on which this event took place"),
+                                on_delete=models.PROTECT)
     event_type = models.CharField(max_length=16, choices=TYPE_CHOICES, verbose_name=_("Event Type"),
                                   help_text=_("The type of event"))
     contact = models.ForeignKey('contacts.Contact', verbose_name=_("Contact"), related_name='channel_events',
-                                help_text=_("The contact associated with this event"))
+                                help_text=_("The contact associated with this event"),
+                                on_delete=models.PROTECT)
     contact_urn = models.ForeignKey('contacts.ContactURN', null=True, verbose_name=_("URN"), related_name='channel_events',
-                                    help_text=_("The contact URN associated with this event"))
+                                    help_text=_("The contact URN associated with this event"),
+                                    on_delete=models.PROTECT)
     extra = models.TextField(verbose_name=_("Extra"), null=True,
                              help_text=_("Any extra properties on this event as JSON"))
     occurred_on = models.DateTimeField(verbose_name=_("Occurred On"),
@@ -1509,12 +1514,12 @@ class SendException(Exception):
 
 class ChannelLog(models.Model):
     channel = models.ForeignKey(Channel, related_name='logs',
-                                help_text=_("The channel the message was sent on"))
+                                help_text=_("The channel the message was sent on"), on_delete=models.PROTECT)
     msg = models.ForeignKey('msgs.Msg', related_name='channel_logs', null=True,
-                            help_text=_("The message that was sent"))
+                            help_text=_("The message that was sent"), on_delete=models.PROTECT)
 
     connection = models.ForeignKey('channels.ChannelSession', related_name='channel_logs', null=True,
-                                   help_text=_("The channel session for this log"))
+                                   help_text=_("The channel session for this log"), on_delete=models.PROTECT)
 
     description = models.CharField(max_length=255,
                                    help_text=_("A description of the status of this message send"))
@@ -1637,7 +1642,7 @@ class ChannelLog(models.Model):
 
 class SyncEvent(SmartModel):
     channel = models.ForeignKey(Channel, verbose_name=_("Channel"),
-                                help_text=_("The channel that synced to the server"))
+                                help_text=_("The channel that synced to the server"), on_delete=models.PROTECT)
     power_source = models.CharField(verbose_name=_("Power Source"), max_length=64,
                                     help_text=_("The power source the device is using"))
     power_status = models.CharField(verbose_name=_("Power Status"), max_length=64, default="STATUS_UNKNOWN",
@@ -1728,9 +1733,10 @@ class Alert(SmartModel):
                     (TYPE_SMS, _("SMS")))                     # channel has many unsent messages
 
     channel = models.ForeignKey(Channel, verbose_name=_("Channel"),
-                                help_text=_("The channel that this alert is for"))
+                                help_text=_("The channel that this alert is for"), on_delete=models.PROTECT)
     sync_event = models.ForeignKey(SyncEvent, verbose_name=_("Sync Event"), null=True,
-                                   help_text=_("The sync event that caused this alert to be sent (if any)"))
+                                   help_text=_("The sync event that caused this alert to be sent (if any)"),
+                                   on_delete=models.PROTECT)
     alert_type = models.CharField(verbose_name=_("Alert Type"), max_length=1, choices=TYPE_CHOICES,
                                   help_text=_("The type of alert the channel is sending"))
     ended_on = models.DateTimeField(verbose_name=_("Ended On"), blank=True, null=True)
@@ -1930,11 +1936,12 @@ class ChannelSession(SmartModel):
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default=PENDING,
                               help_text="The status of this session")
     channel = models.ForeignKey('Channel',
-                                help_text="The channel that created this session")
+                                help_text="The channel that created this session", on_delete=models.PROTECT)
     contact = models.ForeignKey('contacts.Contact', related_name='sessions',
-                                help_text="Who this session is with")
+                                help_text="Who this session is with", on_delete=models.PROTECT)
     contact_urn = models.ForeignKey('contacts.ContactURN', verbose_name=_("Contact URN"),
-                                    help_text=_("The URN this session is communicating with"))
+                                    help_text=_("The URN this session is communicating with"),
+                                    on_delete=models.PROTECT)
     direction = models.CharField(max_length=1, choices=DIRECTION_CHOICES,
                                  help_text="The direction of this session, either incoming or outgoing")
     started_on = models.DateTimeField(null=True, blank=True,
@@ -1942,7 +1949,7 @@ class ChannelSession(SmartModel):
     ended_on = models.DateTimeField(null=True, blank=True,
                                     help_text="When this session ended")
     org = models.ForeignKey(Org,
-                            help_text="The organization this session belongs to")
+                            help_text="The organization this session belongs to", on_delete=models.PROTECT)
     session_type = models.CharField(max_length=1, choices=TYPE_CHOICES,
                                     help_text="What sort of session this is")
     duration = models.IntegerField(default=0, null=True,

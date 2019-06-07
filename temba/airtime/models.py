@@ -28,15 +28,18 @@ class AirtimeTransfer(SmartModel):
                       (SUCCESS, "Success"),
                       (FAILED, "Failed"))
 
-    org = models.ForeignKey(Org, help_text="The organization that this airtime was triggered for")
+    org = models.ForeignKey(Org, help_text="The organization that this airtime was triggered for",
+                            on_delete=models.PROTECT)
 
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P',
                               help_text="The state this event is currently in")
 
     channel = models.ForeignKey(Channel, null=True, blank=True,
-                                help_text="The channel that this airtime is relating to")
+                                help_text="The channel that this airtime is relating to",
+                                on_delete=models.PROTECT)
 
-    contact = models.ForeignKey(Contact, help_text="The contact that this airtime is sent to")
+    contact = models.ForeignKey(Contact, help_text="The contact that this airtime is sent to",
+                                on_delete=models.PROTECT)
 
     recipient = models.CharField(max_length=64)
 

@@ -151,9 +151,9 @@ class BroadcastRecipient(models.Model):
     """
     Through table for broadcast recipients many-to-many
     """
-    broadcast = models.ForeignKey('msgs.Broadcast')
+    broadcast = models.ForeignKey('msgs.Broadcast', on_delete=models.PROTECT)
 
-    contact = models.ForeignKey(Contact)
+    contact = models.ForeignKey(Contact, on_delete=models.PROTECT)
 
     purged_status = models.CharField(null=True, max_length=1,
                                      help_text=_("Used when broadcast is purged to record contact's message's state"))
@@ -174,7 +174,7 @@ class Broadcast(models.Model):
     MAX_TEXT_LEN = settings.MSG_FIELD_SIZE
 
     org = models.ForeignKey(Org, verbose_name=_("Org"),
-                            help_text=_("The org this broadcast is connected to"))
+                            help_text=_("The org this broadcast is connected to"), on_delete=models.PROTECT)
 
     groups = models.ManyToManyField(ContactGroup, verbose_name=_("Groups"), related_name='addressed_broadcasts',
                                     help_text=_("The groups to send the message to"))
@@ -193,15 +193,17 @@ class Broadcast(models.Model):
                                           help_text=_("Number of urns which received this broadcast"))
 
     channel = models.ForeignKey(Channel, null=True, verbose_name=_("Channel"),
-                                help_text=_("Channel to use for message sending"))
+                                help_text=_("Channel to use for message sending"), on_delete=models.PROTECT)
 
     status = models.CharField(max_length=1, verbose_name=_("Status"), choices=STATUS_CHOICES, default=INITIALIZING,
                               help_text=_("The current status for this broadcast"))
 
     schedule = models.OneToOneField(Schedule, verbose_name=_("Schedule"), null=True,
-                                    help_text=_("Our recurring schedule if we have one"), related_name="broadcast")
+                                    help_text=_("Our recurring schedule if we have one"), related_name="broadcast",
+                                    on_delete=models.PROTECT)
 
-    parent = models.ForeignKey('Broadcast', verbose_name=_("Parent"), null=True, related_name='children')
+    parent = models.ForeignKey('Broadcast', verbose_name=_("Parent"), null=True, related_name='children',
+                               on_delete=models.PROTECT)
 
     text = TranslatableField(verbose_name=_("Translations"), max_length=MAX_TEXT_LEN,
                              help_text=_("The localized versions of the message text"))
@@ -212,13 +214,13 @@ class Broadcast(models.Model):
     is_active = models.BooleanField(default=True, help_text="Whether this broadcast is active")
 
     created_by = models.ForeignKey(User, related_name="%(app_label)s_%(class)s_creations",
-                                   help_text="The user which originally created this item")
+                                   help_text="The user which originally created this item", on_delete=models.PROTECT)
 
     created_on = models.DateTimeField(default=timezone.now, blank=True, editable=False, db_index=True,
                                       help_text=_("When this broadcast was created"))
 
     modified_by = models.ForeignKey(User, related_name="%(app_label)s_%(class)s_modifications",
-                                    help_text="The user which last modified this item")
+                                    help_text="The user which last modified this item", on_delete=models.PROTECT)
 
     modified_on = models.DateTimeField(auto_now=True,
                                        help_text="When this item was last modified")
@@ -669,24 +671,28 @@ class Msg(models.Model):
                             help_text=_("The UUID for this message"))
 
     org = models.ForeignKey(Org, related_name='msgs', verbose_name=_("Org"),
-                            help_text=_("The org this message is connected to"))
+                            help_text=_("The org this message is connected to"),
+                            on_delete=models.PROTECT)
 
     channel = models.ForeignKey(Channel, null=True,
                                 related_name='msgs', verbose_name=_("Channel"),
-                                help_text=_("The channel object that this message is associated with"))
+                                help_text=_("The channel object that this message is associated with"),
+                                on_delete=models.PROTECT)
 
     contact = models.ForeignKey(Contact,
                                 related_name='msgs', verbose_name=_("Contact"),
                                 help_text=_("The contact this message is communicating with"),
-                                db_index=False)
+                                db_index=False, on_delete=models.PROTECT)
 
     contact_urn = models.ForeignKey(ContactURN, null=True,
                                     related_name='msgs', verbose_name=_("Contact URN"),
-                                    help_text=_("The URN this message is communicating with"))
+                                    help_text=_("The URN this message is communicating with"),
+                                    on_delete=models.PROTECT)
 
     broadcast = models.ForeignKey(Broadcast, null=True, blank=True,
                                   related_name='msgs', verbose_name=_("Broadcast"),
-                                  help_text=_("If this message was sent to more than one recipient"))
+                                  help_text=_("If this message was sent to more than one recipient"),
+                                  on_delete=models.PROTECT)
 
     text = models.TextField(verbose_name=_("Text"),
                             help_text=_("The actual message content that was sent"))
@@ -713,7 +719,8 @@ class Msg(models.Model):
 
     response_to = models.ForeignKey('Msg', null=True, blank=True, related_name='responses',
                                     verbose_name=_("Response To"), db_index=False,
-                                    help_text=_("The message that this message is in reply to"))
+                                    help_text=_("The message that this message is in reply to"),
+                                    on_delete=models.PROTECT)
 
     labels = models.ManyToManyField('Label', related_name='msgs', verbose_name=_("Labels"),
                                     help_text=_("Any labels on this message"))
@@ -744,7 +751,8 @@ class Msg(models.Model):
                              help_text=_("The media attachments on this message if any"))
 
     connection = models.ForeignKey('channels.ChannelSession', null=True,
-                                   help_text=_("The session this message was a part of if any"))
+                                   help_text=_("The session this message was a part of if any"),
+                                   on_delete=models.PROTECT)
 
     metadata = models.TextField(null=True, help_text=_("The metadata for this msg"))
 
@@ -1797,7 +1805,7 @@ class SystemLabelCount(SquashableModel):
     """
     SQUASH_OVER = ('org_id', 'label_type')
 
-    org = models.ForeignKey(Org, related_name='system_labels')
+    org = models.ForeignKey(Org, related_name='system_labels', on_delete=models.PROTECT)
 
     label_type = models.CharField(max_length=1, choices=SystemLabel.TYPE_CHOICES)
 
@@ -1857,11 +1865,12 @@ class Label(TembaModel):
     TYPE_CHOICES = ((TYPE_FOLDER, "Folder of labels"),
                     (TYPE_LABEL, "Regular label"))
 
-    org = models.ForeignKey(Org)
+    org = models.ForeignKey(Org, on_delete=models.PROTECT)
 
     name = models.CharField(max_length=MAX_NAME_LEN, verbose_name=_("Name"), help_text=_("The name of this label"))
 
-    folder = models.ForeignKey('Label', verbose_name=_("Folder"), null=True, related_name="children")
+    folder = models.ForeignKey('Label', verbose_name=_("Folder"), null=True, related_name="children",
+                               on_delete=models.PROTECT)
 
     label_type = models.CharField(max_length=1, choices=TYPE_CHOICES, default=TYPE_LABEL, help_text=_("Label type"))
 
@@ -2011,7 +2020,7 @@ class LabelCount(SquashableModel):
     """
     SQUASH_OVER = ('label_id',)
 
-    label = models.ForeignKey(Label, related_name='counts')
+    label = models.ForeignKey(Label, related_name='counts', on_delete=models.PROTECT)
 
     count = models.IntegerField(default=0, help_text=_("Number of items with this system label"))
 
@@ -2087,7 +2096,7 @@ class ExportMessagesTask(BaseExportTask):
 
     groups = models.ManyToManyField(ContactGroup)
 
-    label = models.ForeignKey(Label, null=True)
+    label = models.ForeignKey(Label, null=True, on_delete=models.PROTECT)
 
     system_label = models.CharField(null=True, max_length=1)
 

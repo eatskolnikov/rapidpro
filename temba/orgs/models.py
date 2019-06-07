@@ -2461,7 +2461,7 @@ class TopUp(SmartModel):
     credits that can be consumed by messages.
     """
     org = models.ForeignKey(Org, related_name='topups',
-                            help_text="The organization that was toppped up")
+                            help_text="The organization that was toppped up", on_delete=models.PROTECT)
     price = models.IntegerField(null=True, blank=True, verbose_name=_("Price Paid"),
                                 help_text=_("The price paid for the messages in this top up (in cents)"))
     credits = models.IntegerField(verbose_name=_("Number of Credits"),
@@ -2599,19 +2599,21 @@ class Debit(SquashableModel):
     DEBIT_TYPES = ((TYPE_ALLOCATION, 'Allocation'),
                    (TYPE_PURGE, 'Purge'))
 
-    topup = models.ForeignKey(TopUp, related_name="debits", help_text=_("The topup these credits are applied against"))
+    topup = models.ForeignKey(TopUp, related_name="debits", help_text=_("The topup these credits are applied against"),
+                              on_delete=models.PROTECT)
 
     amount = models.IntegerField(help_text=_('How many credits were debited'))
 
     beneficiary = models.ForeignKey(TopUp, null=True,
                                     related_name="allocations",
-                                    help_text=_('Optional topup that was allocated with these credits'))
+                                    help_text=_('Optional topup that was allocated with these credits'),
+                                    on_delete=models.PROTECT)
 
     debit_type = models.CharField(max_length=1, choices=DEBIT_TYPES, null=False, help_text=_('What caused this debit'))
 
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True,
                                    related_name="debits_created",
-                                   help_text="The user which originally created this item")
+                                   help_text="The user which originally created this item", on_delete=models.PROTECT)
     created_on = models.DateTimeField(default=timezone.now,
                                       help_text="When this item was originally created")
 
@@ -2639,7 +2641,8 @@ class TopUpCredits(SquashableModel):
     SQUASH_OVER = ('topup_id',)
 
     topup = models.ForeignKey(TopUp,
-                              help_text=_("The topup these credits are being used against"))
+                              help_text=_("The topup these credits are being used against"),
+                              on_delete=models.PROTECT)
     used = models.IntegerField(help_text=_("How many credits were used, can be negative"))
 
     @classmethod
@@ -2664,7 +2667,8 @@ class CreditAlert(SmartModel):
                            (ORG_CREDIT_LOW, _("Low Credits")),
                            (ORG_CREDIT_EXPIRING, _("Credits expiring soon")))
 
-    org = models.ForeignKey(Org, help_text="The organization this alert was triggered for")
+    org = models.ForeignKey(Org, help_text="The organization this alert was triggered for",
+                            on_delete=models.PROTECT)
     alert_type = models.CharField(max_length=1, choices=ALERT_TYPES_CHOICES,
                                   help_text="The type of this alert")
     admins = models.ManyToManyField(settings.AUTH_USER_MODEL, help_text=_('Administrators who will be alerted'),

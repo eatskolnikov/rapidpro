@@ -57,7 +57,7 @@ class Value(models.Model):
 
     MAX_VALUE_LEN = settings.VALUE_FIELD_SIZE
 
-    contact = models.ForeignKey('contacts.Contact', related_name='values')
+    contact = models.ForeignKey('contacts.Contact', related_name='values', on_delete=models.PROTECT)
 
     contact_field = models.ForeignKey('contacts.ContactField', null=True, on_delete=models.SET_NULL,
                                       help_text="The ContactField this value is for, if any")
@@ -86,7 +86,7 @@ class Value(models.Model):
 
     media_value = models.TextField(max_length=640, null=True, help_text="The media value if any.")
 
-    org = models.ForeignKey(Org)
+    org = models.ForeignKey(Org, on_delete=models.PROTECT)
 
     created_on = models.DateTimeField(auto_now_add=True)
     modified_on = models.DateTimeField(auto_now=True)

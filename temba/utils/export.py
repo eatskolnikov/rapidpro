@@ -49,7 +49,8 @@ class BaseExportTask(TembaModel):
                       (STATUS_COMPLETE, _("Complete")),
                       (STATUS_FAILED, _("Failed")))
 
-    org = models.ForeignKey('orgs.Org', related_name='%(class)ss', help_text=_("The organization of the user."))
+    org = models.ForeignKey('orgs.Org', related_name='%(class)ss', help_text=_("The organization of the user."),
+                            on_delete=models.PROTECT)
 
     status = models.CharField(max_length=1, default=STATUS_PENDING, choices=STATUS_CHOICES)
 

@@ -40,7 +40,7 @@ class Link(TembaModel):
     destination = models.URLField(max_length=255,
                                   help_text="The destination URL for this trackable link")
 
-    org = models.ForeignKey(Org, related_name='links')
+    org = models.ForeignKey(Org, related_name='links', on_delete=models.PROTECT)
 
     is_archived = models.BooleanField(default=False,
                                       help_text=_("Whether this trackable link is archived"))
@@ -129,10 +129,10 @@ class Link(TembaModel):
 
 
 class LinkContacts(SmartModel):
-    link = models.ForeignKey(Link, related_name="contacts")
+    link = models.ForeignKey(Link, related_name="contacts", on_delete=models.PROTECT)
 
     contact = models.ForeignKey(Contact, related_name="contact_links",
-                                help_text=_("The users which clicked on this link"))
+                                help_text=_("The users which clicked on this link"), on_delete=models.PROTECT)
 
     def __str__(self):
         return "%s" % self.contact.get_display()
@@ -144,7 +144,8 @@ class ExportLinksTask(BaseExportTask):
     email_template = 'links/email/links_export_download'
 
     link = models.ForeignKey(Link, null=True, related_name='exports',
-                             help_text=_("The trackable link to export"))
+                             help_text=_("The trackable link to export"),
+                             on_delete=models.PROTECT)
 
     @classmethod
     def create(cls, org, user, link):
