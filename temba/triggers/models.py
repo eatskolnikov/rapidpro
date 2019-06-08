@@ -53,7 +53,8 @@ class Trigger(SmartModel):
     MATCH_TYPES = ((MATCH_FIRST_WORD, _("Message starts with the keyword")),
                    (MATCH_ONLY_WORD, _("Message contains only the keyword")))
 
-    org = models.ForeignKey(Org, verbose_name=_("Org"), help_text=_("The organization this trigger belongs to"))
+    org = models.ForeignKey(Org, verbose_name=_("Org"), help_text=_("The organization this trigger belongs to"),
+                            on_delete=models.PROTECT)
 
     keyword = models.CharField(verbose_name=_("Keyword"), max_length=KEYWORD_MAX_LEN, null=True, blank=True,
                                help_text=_("Word to match in the message text"))
@@ -62,7 +63,8 @@ class Trigger(SmartModel):
                                    help_text=_("The referrer id that triggers us"))
 
     flow = models.ForeignKey(Flow, verbose_name=_("Flow"),
-                             help_text=_("Which flow will be started"), related_name="triggers")
+                             help_text=_("Which flow will be started"), related_name="triggers",
+                             on_delete=models.PROTECT)
 
     last_triggered = models.DateTimeField(verbose_name=_("Last Triggered"), default=None, null=True,
                                           help_text=_("The last time this trigger was fired"))
@@ -81,7 +83,7 @@ class Trigger(SmartModel):
 
     schedule = models.OneToOneField('schedules.Schedule', verbose_name=_("Schedule"),
                                     null=True, blank=True, related_name='trigger',
-                                    help_text=_('Our recurring schedule'))
+                                    help_text=_('Our recurring schedule'), on_delete=models.PROTECT)
 
     trigger_type = models.CharField(max_length=1, choices=TRIGGER_TYPES, default=TYPE_KEYWORD,
                                     verbose_name=_("Trigger Type"), help_text=_('The type of this trigger'))
@@ -90,7 +92,7 @@ class Trigger(SmartModel):
                                   verbose_name=_("Trigger When"), help_text=_('How to match a message with a keyword'))
 
     channel = models.ForeignKey(Channel, verbose_name=_("Channel"), null=True, related_name='triggers',
-                                help_text=_("The associated channel"))
+                                help_text=_("The associated channel"), on_delete=models.PROTECT)
 
     embedded_data = models.TextField(verbose_name=_("Embedded Data"), null=True,
                                      help_text=_("Extra data about this trigger"))

@@ -27,7 +27,7 @@ from temba_expressions.evaluator import EvaluationContext, DateStyle
 from temba.channels.courier import push_courier_msgs
 from temba.assets.models import register_asset_store
 from temba.contacts.models import Contact, ContactGroup, ContactURN, URN
-from temba.channels.models import Channel, ChannelEvent
+from temba.channels.models import Channel, ChannelEvent, ChannelLog
 from temba.orgs.models import Org, TopUp, Language, UNREAD_INBOX_MSGS
 from temba.schedules.models import Schedule
 from temba.utils import get_datetime_format, datetime_to_str, analytics, chunk_list, on_transaction_commit
@@ -663,6 +663,11 @@ class Msg(models.Model):
 
     MEDIA_TYPES = [MEDIA_AUDIO, MEDIA_GPS, MEDIA_IMAGE, MEDIA_VIDEO]
 
+    DELETE_FOR_ARCHIVE = "A"
+    DELETE_FOR_USER = "U"
+
+    DELETE_CHOICES = ((DELETE_FOR_ARCHIVE, _("Archive delete")), (DELETE_FOR_USER, _("User delete")))
+
     CONTACT_HANDLING_QUEUE = 'ch:%d'
 
     MAX_TEXT_LEN = settings.MSG_FIELD_SIZE
@@ -755,6 +760,10 @@ class Msg(models.Model):
                                    on_delete=models.PROTECT)
 
     metadata = models.TextField(null=True, help_text=_("The metadata for this msg"))
+
+    delete_reason = models.CharField(
+        null=True, max_length=1, choices=DELETE_CHOICES, help_text=_("Why the message is being deleted")
+    )
 
     @classmethod
     def send_messages(cls, all_msgs):
@@ -1682,6 +1691,22 @@ class Msg(models.Model):
 
         # remove labels
         self.labels.clear()
+
+    def release(self, delete_reason=DELETE_FOR_USER):
+        """
+        Releases (i.e. deletes) this message
+        """
+        Msg.objects.filter(response_to=self).update(response_to=None)
+
+        for log in ChannelLog.objects.filter(msg=self):
+            log.release()
+
+        if delete_reason:
+            self.delete_reason = delete_reason
+            self.save(update_fields=["delete_reason"])
+
+        # delete this object
+        self.delete()
 
     @classmethod
     def apply_action_label(cls, user, msgs, label, add):

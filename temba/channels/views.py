@@ -479,7 +479,7 @@ def channel_status_processor(request):
     status = dict()
     user = request.user
 
-    if user.is_superuser or user.is_anonymous():
+    if user.is_superuser or user.is_anonymous:
         return status
 
     # from the logged in user get the channel
@@ -1675,7 +1675,7 @@ class ChannelCRUDL(SmartCRUDL):
             user = self.request.user
             org = None
 
-            if not user.is_anonymous():
+            if not user.is_anonymous:
                 org = user.get_org()
 
             org_id = self.request.session.get('org_id', None)

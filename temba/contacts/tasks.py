@@ -50,3 +50,11 @@ def unblock_contacts_task(contact_ids, org_id, groups):
     if groups:
         for contact in contacts:
             contact.update_static_groups(contact.modified_by, groups)
+
+
+@task(track_started=True, name="full_release_contact")
+def full_release_contact(contact_id):
+    contact = Contact.objects.filter(id=contact_id).first()
+
+    if contact and not contact.is_active:
+        contact._full_release()

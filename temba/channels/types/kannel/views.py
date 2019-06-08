@@ -25,7 +25,7 @@ class ClaimView(ClaimViewMixin, SmartFormView):
         password = forms.CharField(max_length=64, required=False,
                                    help_text=_("The password to use to authenticate to Kannel, if left blank we "
                                                "will generate one for you"))
-        encoding = forms.ChoiceField(Channel.ENCODING_CHOICES, label=_("Encoding"),
+        encoding = forms.ChoiceField(choices=Channel.ENCODING_CHOICES, label=_("Encoding"),
                                      help_text=_("What encoding to use for outgoing messages"))
         verify_ssl = forms.BooleanField(initial=True, required=False, label=_("Verify SSL"),
                                         help_text=_("Whether to verify the SSL connection (recommended)"))

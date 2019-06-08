@@ -15,7 +15,7 @@ from collections import defaultdict
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Count, Max, Q, Sum
 from django.utils import timezone
 from django.utils.translation import ugettext, ugettext_lazy as _
@@ -24,7 +24,7 @@ from smartmin.models import SmartModel, SmartImportRowError
 from smartmin.csv_imports.models import ImportTask
 from simple_salesforce import Salesforce
 from temba.assets.models import register_asset_store
-from temba.channels.models import Channel
+from temba.channels.models import Channel, ChannelEvent
 from temba.locations.models import AdminBoundary
 from temba.orgs.models import Org, OrgLock
 from temba.utils import analytics, format_decimal, datetime_to_str, chunk_list, get_anonymous_user
@@ -46,6 +46,7 @@ END_TEST_CONTACT_PATH = 12065550199
 # how many sequential contacts on import triggers suspension
 SEQUENTIAL_CONTACTS_THRESHOLD = 250
 
+DELETED_SCHEME = "deleted"
 EMAIL_SCHEME = 'mailto'
 EXTERNAL_SCHEME = 'ext'
 FACEBOOK_SCHEME = 'facebook'
@@ -1621,31 +1622,75 @@ class Contact(TembaModel):
             user = get_anonymous_user()
         self.unstop(user)
 
-    def release(self, user):
+    def release(self, user, *, immediately=True):
         """
-        Releases (i.e. deletes) this contact, provided it is currently not deleted
+        Marks this contact for deletion
         """
-        # detach all contact's URNs
-        self.update_urns(user, [])
+        with transaction.atomic():
+            # prep our urns for deletion so our old path creates a new urn
+            for urn in self.urns.all():
+                path = str(uuid.uuid4())
+                urn.identity = f"{DELETED_SCHEME}:{path}"
+                urn.path = path
+                urn.scheme = DELETED_SCHEME
+                urn.channel = None
+                urn.save(update_fields=("identity", "path", "scheme", "channel"))
 
-        # remove from all groups
-        self.clear_all_groups(user)
+            # no group for you!
+            self.clear_all_groups(user)
 
-        # release all messages with this contact
-        for msg in self.msgs.all():
-            msg.release()
+            # now deactivate the contact itself
+            self.is_active = False
+            self.name = None
+            self.fields = None
+            self.save(update_fields=("name", "is_active", "fields", "modified_on"), handle_update=False)
 
-        # release all channel events with this contact
-        for event in self.channel_events.all():
-            event.release()
+        # kick off a task to remove all the things related to us
+        if immediately:
+            from temba.contacts.tasks import full_release_contact
 
-        # remove all flow runs and steps
-        for run in self.runs.all():
-            run.release()
+            full_release_contact.delay(self.id)
 
-        self.is_active = False
-        self.modified_by = user
-        self.save(update_fields=('is_active', 'modified_on', 'modified_by'))
+    def _full_release(self):
+        with transaction.atomic():
+
+            # release our messages
+            for msg in self.msgs.all():
+                msg.release()
+
+            # release any calls or ussd sessions
+            for conn in self.connections.all():
+                conn.release()
+
+            # any urns currently owned by us
+            for urn in self.urns.all():
+
+                # release any messages attached with each urn,
+                # these could include messages that began life
+                # on a different contact
+                for msg in urn.msgs.all():
+                    msg.release()
+
+                # same thing goes for sessions
+                for conn in urn.connections.all():
+                    conn.release()
+
+                urn.release()
+
+            # release our channel events
+            for event in self.channel_events.all():
+                event.release()
+
+            # release our runs too
+            for run in self.runs.all():
+                run.release()
+
+            # and any event fire history
+            self.fire_events.all().delete()
+
+            # take us out of broadcast addressed contacts
+            for broadcast in self.addressed_broadcasts.all():
+                broadcast.contacts.remove(self)
 
     @classmethod
     def bulk_cache_initialize(cls, org, contacts, for_show_only=False):
@@ -2193,6 +2238,11 @@ class ContactURN(models.Model):
         Returns a full representation of this contact URN as a string
         """
         return URN.from_parts(self.scheme, self.path, self.display)
+
+    def release(self):
+        for event in ChannelEvent.objects.filter(contact_urn=self):
+            event.release()
+        self.delete()
 
     def __str__(self):  # pragma: no cover
         return URN.from_parts(self.scheme, self.path, self.display)

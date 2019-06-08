@@ -23,7 +23,7 @@ class Report(SmartModel):
     description = models.TextField(verbose_name=_("Description"),
                                    help_text=_("The full description for the report"))
 
-    org = models.ForeignKey(Org)
+    org = models.ForeignKey(Org, on_delete=models.PROTECT)
 
     config = models.TextField(null=True, verbose_name=_("Configuration"),
                               help_text=_("The JSON encoded configurations for this report"))

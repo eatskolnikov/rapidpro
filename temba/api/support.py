@@ -47,7 +47,7 @@ class OrgRateThrottle(ScopedRateThrottle):
     """
     def get_cache_key(self, request, view):
         ident = None
-        if request.user.is_authenticated():
+        if request.user.is_authenticated:
             org = request.user.get_org()
             if org:
                 ident = org.pk

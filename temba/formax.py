@@ -3,7 +3,7 @@ from __future__ import print_function, unicode_literals
 import time
 
 from django.conf import settings
-from django.core.urlresolvers import resolve
+from django.urls import resolve
 from django.http import HttpResponseRedirect
 from temba.orgs.context_processors import user_group_perms_processor
 
@@ -14,7 +14,7 @@ class FormaxMixin(object):
         return None
 
     def get_context_data(self, *args, **kwargs):
-        context = super(FormaxMixin, self).get_context_data(*args, **kwargs)
+        context = super().get_context_data(*args, **kwargs)
         formax = Formax(self.request)
         self.derive_formax_sections(formax, context)
 
@@ -47,7 +47,7 @@ class Formax(object):
         # redirects don't do us any good
         if not isinstance(response, HttpResponseRedirect):
             response.render()
-            self.sections.append(dict(name=name, url=url, response=response.content,
+            self.sections.append(dict(name=name, url=url, response=response.rendered_content,
                                       icon=icon, action=action, button=button, nobutton=nobutton, dependents=dependents))
 
         if settings.DEBUG:

@@ -875,7 +875,7 @@ class APITest(TembaTest):
         self.assertEqual(response.status_code, 200)
 
         # remove all our contacts
-        Contact.objects.all().delete()
+        self.releaseContacts(delete=True)
 
         # no contacts yet
         response = self.fetchJSON(url)

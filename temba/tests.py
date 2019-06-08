@@ -517,6 +517,19 @@ class TembaTest(SmartminTest):
         for r, row in enumerate(rows):
             self.assertExcelRow(sheet, r, row, tz)
 
+    def release(self, objs, delete=False, user=None):
+        for obj in objs:
+            if user:
+                obj.release(user)
+            else:
+                obj.release()
+
+            if obj.id and delete:
+                obj.delete()
+
+    def releaseContacts(self, delete=False):
+        self.release(Contact.objects.all(), delete=delete, user=self.admin)
+
 
 class FlowFileTest(TembaTest):
 

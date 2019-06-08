@@ -178,6 +178,10 @@ class ChannelType(six.with_metaclass(ABCMeta)):
         return self.name
 
 
+def _get_default_channel_scheme():
+    return ["tel"]
+
+
 @six.python_2_unicode_compatible
 class Channel(TembaModel):
     TYPE_ANDROID = 'A'
@@ -331,7 +335,7 @@ class Channel(TembaModel):
     config = models.TextField(verbose_name=_("Config"), null=True,
                               help_text=_("Any channel specific configuration, used for the various aggregators"))
 
-    schemes = ArrayField(models.CharField(max_length=16), default=['tel'],
+    schemes = ArrayField(models.CharField(max_length=16), default=_get_default_channel_scheme,
                          verbose_name="URN Schemes", help_text=_("The URN schemes this channel supports"))
 
     role = models.CharField(verbose_name="Channel Role", max_length=4, default=DEFAULT_ROLE,
@@ -1638,6 +1642,9 @@ class ChannelLog(models.Model):
             if not self.response:
                 self.response = self.description
             return self.response
+
+    def release(self):
+        self.delete()
 
 
 class SyncEvent(SmartModel):

@@ -2291,7 +2291,7 @@ def _user_has_org_perm(user, org, permission):
     if user.is_superuser:  # pragma: needs cover
         return True
 
-    if user.is_anonymous():  # pragma: needs cover
+    if user.is_anonymous:  # pragma: needs cover
         return False
 
     # has it innately? (customer support)

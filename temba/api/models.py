@@ -38,7 +38,7 @@ class APIPermission(BasePermission):
 
         if getattr(view, 'permission', None):
             # no anon access to API endpoints
-            if request.user.is_anonymous():
+            if request.user.is_anonymous:
                 return False
 
             org = request.user.get_org()
@@ -81,7 +81,8 @@ class Resthook(SmartModel):
     to this particular resthook.
     """
     org = models.ForeignKey(Org, related_name='resthooks',
-                            help_text=_("The organization this resthook belongs to"))
+                            help_text=_("The organization this resthook belongs to"),
+                            on_delete=models.PROTECT)
     slug = models.SlugField(help_text=_("A simple label for this event"))
 
     @classmethod
@@ -133,7 +134,7 @@ class ResthookSubscriber(SmartModel):
     Represents a subscriber on a specific resthook within one of our flows.
     """
     resthook = models.ForeignKey(Resthook, related_name='subscribers',
-                                 help_text=_("The resthook being subscribed to"))
+                                 help_text=_("The resthook being subscribed to"), on_delete=models.PROTECT)
     target_url = models.URLField(help_text=_("The URL that we will call when our ruleset is reached"))
 
     def as_json(self):  # pragma: needs cover
@@ -184,15 +185,19 @@ class WebHookEvent(SmartModel):
                       (STATUS_FAILED, "Failed"))
 
     org = models.ForeignKey(Org,
-                            help_text="The organization that this event was triggered for")
+                            help_text="The organization that this event was triggered for",
+                            on_delete=models.PROTECT)
     resthook = models.ForeignKey(Resthook, null=True,
-                                 help_text="The associated resthook to this event. (optional)")
+                                 help_text="The associated resthook to this event. (optional)",
+                                 on_delete=models.PROTECT)
     status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='P',
                               help_text="The state this event is currently in")
     run = models.ForeignKey(FlowRun, null=True,
-                            help_text="The flow run that triggered this event")
+                            help_text="The flow run that triggered this event",
+                            on_delete=models.PROTECT)
     channel = models.ForeignKey(Channel, null=True, blank=True,
-                                help_text="The channel that this event is relating to")
+                                help_text="The channel that this event is relating to",
+                                on_delete=models.PROTECT)
     event = models.CharField(max_length=16, choices=TYPE_CHOICES,
                              help_text="The event type for this event")
     data = models.TextField(help_text="The JSON encoded data that will be POSTED to the web hook")
@@ -579,7 +584,8 @@ class WebHookResult(SmartModel):
     Represents the result of trying to deliver an event to a web hook
     """
     event = models.ForeignKey(WebHookEvent, related_name='results',
-                              help_text="The event that this result is tied to")
+                              help_text="The event that this result is tied to",
+                              on_delete=models.PROTECT)
     url = models.TextField(null=True, blank=True,
                            help_text="The URL the event was delivered to")
     data = models.TextField(null=True, blank=True,
@@ -593,7 +599,8 @@ class WebHookResult(SmartModel):
                             help_text="The body of the HTTP response as returned by the web hook")
     request_time = models.IntegerField(null=True, help_text=_('Time it took to process this request'))
     contact = models.ForeignKey('contacts.Contact', null=True, related_name='webhook_results',
-                                help_text="The contact that generated this result")
+                                help_text="The contact that generated this result",
+                                on_delete=models.PROTECT)
 
     @classmethod
     def record_result(cls, event, result):
@@ -645,13 +652,13 @@ class APIToken(models.Model):
 
     key = models.CharField(max_length=40, primary_key=True)
 
-    user = models.ForeignKey(User, related_name='api_tokens')
+    user = models.ForeignKey(User, related_name='api_tokens', on_delete=models.PROTECT)
 
-    org = models.ForeignKey(Org, related_name='api_tokens')
+    org = models.ForeignKey(Org, related_name='api_tokens', on_delete=models.PROTECT)
 
     created = models.DateTimeField(auto_now_add=True)
 
-    role = models.ForeignKey(Group)
+    role = models.ForeignKey(Group, on_delete=models.PROTECT)
 
     @classmethod
     def get_or_create(cls, org, user, role=None, refresh=False):

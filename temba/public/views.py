@@ -22,14 +22,14 @@ class IndexView(SmartTemplateView):
     template_name = 'public/public_index.haml'
 
     def pre_process(self, request, *args, **kwargs):
-        response = super(IndexView, self).pre_process(request, *args, **kwargs)
+        response = super().pre_process(request, *args, **kwargs)
         redirect = self.request.branding.get('redirect')
         if redirect:
             return HttpResponseRedirect(redirect)
         return response
 
     def get_context_data(self, **kwargs):
-        context = super(IndexView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         context['thanks'] = 'thanks' in self.request.GET
         context['errors'] = 'errors' in self.request.GET
         if context['errors']:
@@ -67,7 +67,7 @@ class Welcome(SmartTemplateView):
         return context
 
     def has_permission(self, request, *args, **kwargs):
-        return request.user.is_authenticated()
+        return request.user.is_authenticated
 
 
 class Privacy(SmartTemplateView):
@@ -138,7 +138,7 @@ class LeadCRUDL(SmartCRUDL):
             obj.created_by = anon
             obj.modified_by = anon
 
-            if self.request.user.is_anonymous():
+            if self.request.user.is_anonymous:
                 analytics.identify(obj.email, dict(email=obj.email, plan='None', segment=randint(1, 10),
                                                    brand=self.request.branding['slug']))
                 analytics.track(obj.email, 'temba.org_lead')

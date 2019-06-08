@@ -53,7 +53,7 @@ def user_group_perms_processor(request):
     group = None
 
     if hasattr(request, 'user'):
-        if request.user.is_anonymous():
+        if request.user.is_anonymous:
             group = None
         else:
             group = request.user.get_org_group()
@@ -85,7 +85,7 @@ def unread_count_processor(request):
     context = dict()
     user = request.user
 
-    if user.is_superuser or user.is_anonymous():
+    if user.is_superuser or user.is_anonymous:
         return context
 
     org = user.get_org()

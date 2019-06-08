@@ -39,7 +39,7 @@ urlpatterns = [
     url(r'^users/', include('smartmin.users.urls')),
     url(r'^imports/', include('smartmin.csv_imports.urls')),
     url(r'^assets/', include('temba.assets.urls')),
-    url(r'^jsi18n/$', JavaScriptCatalog, js_info_dict, name='django.views.i18n.javascript_catalog'),
+    url(r'^jsi18n/$', JavaScriptCatalog.as_view(), js_info_dict, name='django.views.i18n.javascript_catalog'),
 ]
 
 if settings.DEBUG:
@@ -85,7 +85,7 @@ def track_user(self):  # pragma: no cover
         return False
 
     # always track them if they haven't logged in
-    if not self.is_authenticated() or self.is_anonymous():
+    if not self.is_authenticated or self.is_anonymous:
         return True
 
     # never track nyaruka email accounts

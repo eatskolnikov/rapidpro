@@ -153,8 +153,7 @@ TEMPLATES = [
                 'temba.utils.haml.HamlFilesystemLoader',
                 'temba.utils.haml.HamlAppDirectoriesLoader',
                 'django.template.loaders.filesystem.Loader',
-                'django.template.loaders.app_directories.Loader',
-                'django.template.loaders.eggs.Loader'
+                'django.template.loaders.app_directories.Loader'
             ],
             'debug': False if TESTING else DEBUG
         },
@@ -164,17 +163,20 @@ TEMPLATES = [
 if TESTING:
     TEMPLATES[0]['OPTIONS']['context_processors'] += ('temba.tests.add_testing_flag_to_context', )
 
-MIDDLEWARE_CLASSES = (
-    'django.middleware.common.CommonMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'temba.middleware.BrandingMiddleware',
-    'temba.middleware.OrgTimezoneMiddleware',
-    'temba.middleware.FlowSimulationMiddleware',
-    'temba.middleware.ActivateLanguageMiddleware',
-    'temba.middleware.OrgHeaderMiddleware',
+
+MIDDLEWARE = (
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "temba.middleware.BrandingMiddleware",
+    "temba.middleware.OrgTimezoneMiddleware",
+    "temba.middleware.FlowSimulationMiddleware",
+    "temba.middleware.ActivateLanguageMiddleware",
+    "temba.middleware.OrgHeaderMiddleware",
 )
 
 ROOT_URLCONF = 'temba.urls'
@@ -1130,12 +1132,14 @@ REST_FRAMEWORK = {
         'v2.api': '2500/hour',
     },
     'PAGE_SIZE': 250,
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
     'DEFAULT_RENDERER_CLASSES': (
         'temba.api.support.DocumentationRenderer',
         'rest_framework.renderers.JSONRenderer'
     ),
-    # 'EXCEPTION_HANDLER': 'temba.api.support.temba_exception_handler',
-    'UNICODE_JSON': False
+    'EXCEPTION_HANDLER': 'temba.api.support.temba_exception_handler',
+    'UNICODE_JSON': False,
+    'STRICT_JSON': False
 }
 REST_HANDLE_EXCEPTIONS = not TESTING
 

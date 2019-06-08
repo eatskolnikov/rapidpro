@@ -4522,7 +4522,7 @@ class FlowNodeCount(SquashableModel):
     """
     SQUASH_OVER = ('node_uuid',)
 
-    flow = models.ForeignKey(Flow)
+    flow = models.ForeignKey(Flow, on_delete=models.PROTECT)
     node_uuid = models.UUIDField(db_index=True)
     count = models.IntegerField(default=0)
 
@@ -4552,7 +4552,7 @@ class FlowRunCount(SquashableModel):
     """
     SQUASH_OVER = ('flow_id', 'exit_type')
 
-    flow = models.ForeignKey(Flow, related_name='counts')
+    flow = models.ForeignKey(Flow, related_name='counts', on_delete=models.PROTECT)
     exit_type = models.CharField(null=True, max_length=1, choices=FlowRun.EXIT_TYPE_CHOICES)
     count = models.IntegerField(default=0)
 
@@ -5182,7 +5182,7 @@ class ActionLog(models.Model):
     LEVEL_ERROR = 'E'
     LEVEL_CHOICES = ((LEVEL_INFO, _("Info")), (LEVEL_WARN, _("Warning")), (LEVEL_ERROR, _("Error")))
 
-    run = models.ForeignKey(FlowRun, related_name='logs')
+    run = models.ForeignKey(FlowRun, related_name='logs', on_delete=models.PROTECT)
 
     text = models.TextField(help_text=_("Log event text"))
 
@@ -5243,7 +5243,8 @@ class FlowStart(SmartModel):
 
     uuid = models.UUIDField(unique=True, default=uuid4)
 
-    flow = models.ForeignKey(Flow, related_name='starts', help_text=_("The flow that is being started"))
+    flow = models.ForeignKey(Flow, related_name='starts', help_text=_("The flow that is being started"),
+                             on_delete=models.PROTECT)
 
     groups = models.ManyToManyField(ContactGroup, help_text=_("Groups that will start the flow"))
 
@@ -5331,13 +5332,14 @@ class FlowStart(SmartModel):
 
 @six.python_2_unicode_compatible
 class FlowLabel(models.Model):
-    org = models.ForeignKey(Org)
+    org = models.ForeignKey(Org, on_delete=models.PROTECT)
 
     uuid = models.CharField(max_length=36, unique=True, db_index=True, default=generate_uuid,
                             verbose_name=_("Unique Identifier"), help_text=_("The unique identifier for this label"))
     name = models.CharField(max_length=64, verbose_name=_("Name"),
                             help_text=_("The name of this flow label"))
-    parent = models.ForeignKey('FlowLabel', verbose_name=_("Parent"), null=True, related_name="children")
+    parent = models.ForeignKey('FlowLabel', verbose_name=_("Parent"), null=True, related_name="children",
+                               on_delete=models.PROTECT)
 
     def get_flows_count(self):
         """

@@ -42,7 +42,7 @@ class AssetDownloadView(SmartTemplateView):
     template_name = 'assets/asset_read.haml'
 
     def has_permission(self, request, *args, **kwargs):
-        return self.request.user.is_authenticated()
+        return self.request.user.is_authenticated
 
     def get_context_data(self, **kwargs):
         context = super(AssetDownloadView, self).get_context_data(**kwargs)
@@ -79,7 +79,7 @@ class AssetStreamView(SmartView, View):
     Provides a direct download stream to an asset, e.g. /assets/stream/contact_export/123/
     """
     def has_permission(self, request, *args, **kwargs):
-        return self.request.user.is_authenticated()
+        return self.request.user.is_authenticated
 
     def get(self, request, *args, **kwargs):
         asset_store = get_asset_store(kwargs.pop('type'))

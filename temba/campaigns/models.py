@@ -24,11 +24,13 @@ class Campaign(TembaModel):
     name = models.CharField(max_length=MAX_NAME_LEN,
                             help_text="The name of this campaign")
     group = models.ForeignKey(ContactGroup,
-                              help_text="The group this campaign operates on")
+                              help_text="The group this campaign operates on",
+                              on_delete=models.PROTECT)
     is_archived = models.BooleanField(default=False,
                                       help_text="Whether this campaign is archived or not")
     org = models.ForeignKey(Org,
-                            help_text="The organization this campaign exists for")
+                            help_text="The organization this campaign exists for",
+                            on_delete=models.PROTECT)
 
     @classmethod
     def create(cls, org, user, name, group):
@@ -257,15 +259,18 @@ class CampaignEvent(TembaModel):
     UNIT_CHOICES = [(u[0], u[1]) for u in UNIT_CONFIG]
 
     campaign = models.ForeignKey(Campaign, related_name='events',
-                                 help_text="The campaign this event is part of")
+                                 help_text="The campaign this event is part of",
+                                 on_delete=models.PROTECT)
     offset = models.IntegerField(default=0,
                                  help_text="The offset in days from our date (positive is after, negative is before)")
     unit = models.CharField(max_length=1, choices=UNIT_CHOICES, default=UNIT_DAYS,
                             help_text="The unit for the offset for this event")
     relative_to = models.ForeignKey(ContactField, related_name='campaigns',
-                                    help_text="The field our offset is relative to")
+                                    help_text="The field our offset is relative to",
+                                    on_delete=models.PROTECT)
 
-    flow = models.ForeignKey(Flow, related_name='events', help_text="The flow that will be triggered")
+    flow = models.ForeignKey(Flow, related_name='events', help_text="The flow that will be triggered",
+                             on_delete=models.PROTECT)
 
     event_type = models.CharField(max_length=1, choices=TYPE_CHOICES, default=TYPE_FLOW,
                                   help_text='The type of this event')
@@ -444,9 +449,11 @@ class CampaignEvent(TembaModel):
 @six.python_2_unicode_compatible
 class EventFire(Model):
     event = models.ForeignKey('campaigns.CampaignEvent', related_name="event_fires",
-                              help_text="The event that will be fired")
+                              help_text="The event that will be fired",
+                              on_delete=models.PROTECT)
     contact = models.ForeignKey(Contact, related_name="fire_events",
-                                help_text="The contact that is scheduled to have an event run")
+                                help_text="The contact that is scheduled to have an event run",
+                                on_delete=models.PROTECT)
     scheduled = models.DateTimeField(help_text="When this event is scheduled to run")
     fired = models.DateTimeField(null=True, blank=True,
                                  help_text="When this event actually fired, null if not yet fired")
