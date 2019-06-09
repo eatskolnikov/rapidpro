@@ -24,7 +24,7 @@ from django.core.files.storage import default_storage, FileSystemStorage
 from django.core.files.temp import NamedTemporaryFile
 from django.urls import reverse
 from django.contrib.auth.models import User, Group
-from django.db import models, connection as db_connection
+from django.db import models, connection as db_connection, transaction
 from django.db.models import Q, Count, QuerySet, Sum, Max
 from django.dispatch import receiver
 from django.utils import timezone
@@ -2883,6 +2883,11 @@ class FlowRun(models.Model):
     PATH_EXIT_UUID = 'exit_uuid'
     PATH_MAX_STEPS = 100
 
+    DELETE_FOR_ARCHIVE = "A"
+    DELETE_FOR_USER = "U"
+
+    DELETE_CHOICES = ((DELETE_FOR_ARCHIVE, _("Archive delete")), (DELETE_FOR_USER, _("User delete")))
+
     uuid = models.UUIDField(unique=True, default=uuid4)
 
     org = models.ForeignKey(Org, related_name='runs', db_index=False, on_delete=models.PROTECT)
@@ -2944,6 +2949,10 @@ class FlowRun(models.Model):
 
     path = models.TextField(null=True,
                             help_text=_("The path taken during this flow run in JSON format"))
+
+    delete_reason = models.CharField(
+        null=True, max_length=1, choices=DELETE_CHOICES, help_text=_("Why the run is being deleted")
+    )
 
     @classmethod
     def create(cls, flow, contact_id, start=None, session=None, connection=None, fields=None,
@@ -3162,24 +3171,28 @@ class FlowRun(models.Model):
                         msg.contact = self.contact
                     Flow.find_and_handle(msg, resume_after_timeout=True)
 
-    def release(self):
+    def release(self, delete_reason=None):
         """
         Permanently deletes this flow run
         """
-        # remove each of our steps. we do this one at a time
-        # so we can decrement the activity properly
-        for step in self.steps.all():
-            step.release()
+        with transaction.atomic():
+            if delete_reason:
+                self.delete_reason = delete_reason
+                self.save(update_fields=["delete_reason"])
 
-        # lastly delete ourselves
-        self.delete()
+            # remove each of our steps. we do this one at a time
+            # so we can decrement the activity properly
+            for step in self.steps.all():
+                step.release()
 
-        # clear analytics results cache
-        for ruleset in self.flow.rule_sets.all():
-            Value.invalidate_cache(ruleset=ruleset)
+            self.delete()
 
-        # clear any recent messages
-        self.recent_messages.all().delete()
+            # clear analytics results cache
+            for ruleset in self.flow.rule_sets.all():
+                Value.invalidate_cache(ruleset=ruleset)
+
+            # clear any recent messages
+            self.recent_messages.all().delete()
 
     def set_completed(self, final_step=None, completed_on=None):
         """

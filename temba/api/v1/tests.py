@@ -900,7 +900,7 @@ class APITest(TembaTest):
         self.assertEqual("Snoop Dog", contact.name)
         self.assertEqual(self.org, contact.org)
 
-        Contact.objects.all().delete()
+        self.releaseContacts(delete=True)
 
         # add a contact using urns field, also set language
         response = self.postJSON(url, dict(name='Snoop Dog', urns=['tel:+250788123456', 'twitter:snoop']))
@@ -1235,6 +1235,7 @@ class APITest(TembaTest):
             contact = Contact.objects.get(name="Test Name", urns__path='external-id', urns__scheme='ext')
 
             # remove it
+            contact.release(self.admin)
             contact.delete()
 
         # check fetching deleted contacts
@@ -1288,7 +1289,7 @@ class APITest(TembaTest):
         for c in range(0, 300):
             contacts.append(Contact(org=self.org, name="Minion %d" % (c + 1),
                                     created_by=self.admin, modified_by=self.admin))
-        Contact.objects.all().delete()
+        self.releaseContacts(delete=True)
         Contact.objects.bulk_create(contacts)
 
         # login as surveyor

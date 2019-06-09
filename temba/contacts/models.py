@@ -525,6 +525,18 @@ class Contact(TembaModel):
         """
         return self.all_groups.filter(group_type=ContactGroup.TYPE_USER_DEFINED)
 
+    def save(self, *args, handle_update=None, **kwargs):
+        super().save(*args, **kwargs)
+
+        # `handle_update` must be explicity set to execute handle_update when saving contact
+        if self.id and "update_fields" in kwargs:
+            if handle_update is None:
+                raise ValueError("When saving contacts we need to specify value for `handle_update`.")
+
+            if handle_update is True:
+                for field in kwargs["update_fields"]:
+                    self.handle_update(field=field)
+
     def as_json(self):
         obj = dict(id=self.pk, name=six.text_type(self), uuid=self.uuid)
 
@@ -991,7 +1003,8 @@ class Contact(TembaModel):
 
                         if updated_attrs:
                             contact.modified_by = user
-                            contact.save(update_fields=updated_attrs + ['modified_on', 'modified_by'])
+                            contact.save(update_fields=updated_attrs + ['modified_on', 'modified_by'],
+                                         handle_update=True)
 
                         contact.urn_objects = contact_urns
 
@@ -1039,7 +1052,8 @@ class Contact(TembaModel):
 
                 if updated_attrs:
                     contact.modified_by = user
-                    contact.save(update_fields=updated_attrs + ['modified_by', 'modified_on'])
+                    contact.save(update_fields=updated_attrs + ['modified_by', 'modified_on'],
+                                 handle_update=True)
 
             # otherwise create new contact with all URNs
             else:
@@ -1643,7 +1657,7 @@ class Contact(TembaModel):
             self.is_active = False
             self.name = None
             self.fields = None
-            self.save(update_fields=("name", "is_active", "fields", "modified_on"), handle_update=False)
+            self.save(update_fields=("name", "is_active", "modified_on"), handle_update=False)
 
         # kick off a task to remove all the things related to us
         if immediately:
@@ -1658,10 +1672,6 @@ class Contact(TembaModel):
             for msg in self.msgs.all():
                 msg.release()
 
-            # release any calls or ussd sessions
-            for conn in self.connections.all():
-                conn.release()
-
             # any urns currently owned by us
             for urn in self.urns.all():
 
@@ -1670,10 +1680,6 @@ class Contact(TembaModel):
                 # on a different contact
                 for msg in urn.msgs.all():
                     msg.release()
-
-                # same thing goes for sessions
-                for conn in urn.connections.all():
-                    conn.release()
 
                 urn.release()
 

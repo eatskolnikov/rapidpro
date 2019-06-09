@@ -376,11 +376,11 @@ class ContactWriteSerializer(WriteSerializer):
         # Contact.get_or_create doesn't nullify language so do that here
         if 'language' in self.validated_data and language is None:
             self.instance.language = language.lower() if language else None
-            self.instance.save()
+            changed.append("language")
 
         # save our contact if it changed
         if changed:
-            self.instance.save(update_fields=changed)
+            self.instance.save(update_fields=changed, handle_update=True)
 
         # update our fields
         if fields is not None:
