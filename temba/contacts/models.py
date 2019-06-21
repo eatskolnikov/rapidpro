@@ -336,6 +336,8 @@ class ContactField(SmartModel):
     MAX_LABEL_LEN = 36
     MAX_ORG_CONTACTFIELDS = 200
 
+    IMMUTABLE_FIELDS = ("id", "created_on")
+
     uuid = models.UUIDField(unique=True, default=uuid.uuid4)
 
     org = models.ForeignKey(Org, verbose_name=_("Org"), related_name="contactfields", on_delete=models.PROTECT)
@@ -534,8 +536,7 @@ class Contact(TembaModel):
                 raise ValueError("When saving contacts we need to specify value for `handle_update`.")
 
             if handle_update is True:
-                for field in kwargs["update_fields"]:
-                    self.handle_update(field=field)
+                self.handle_update(fields=kwargs["update_fields"])
 
     def as_json(self):
         obj = dict(id=self.pk, name=six.text_type(self), uuid=self.uuid)
@@ -788,11 +789,11 @@ class Contact(TembaModel):
 
         if has_changed:
             self.modified_by = user
-            self.save(update_fields=('modified_by', 'modified_on'))
+            self.save(update_fields=('modified_by', 'modified_on'), handle_update=False)
 
             # update any groups or campaigns for this contact if not importing
             if not importing:
-                self.handle_update(field=field)
+                self.handle_update(fields=[field.key])
 
             # invalidate our value cache for this contact field
             Value.invalidate_cache(contact_field=field)
@@ -800,7 +801,7 @@ class Contact(TembaModel):
     def set_cached_field_value(self, key, value):
         setattr(self, '__field__%s' % key, value)
 
-    def handle_update(self, attrs=(), urns=(), field=None, group=None):
+    def handle_update(self, urns=(), fields=None, group=None, is_new=False):
         """
         Handles an update to a contact which can be one of
           1. A change to one or more attributes
@@ -809,14 +810,14 @@ class Contact(TembaModel):
         """
         dynamic_group_change = False
 
-        if Contact.NAME in attrs or field or urns:
+        if fields or urns or is_new:
             # ensure dynamic groups are up to date
-            dynamic_group_change = self.reevaluate_dynamic_groups(field)
+            dynamic_group_change = self.reevaluate_dynamic_groups(for_fields=fields)
 
         # ensure our campaigns are up to date
         from temba.campaigns.models import EventFire
-        if field:
-            EventFire.update_events_for_contact_field(self, field.key)
+        if fields:
+            EventFire.update_events_for_contact_field(contact=self, keys=fields)
 
         if group or dynamic_group_change:
             # ensure our campaigns are up to date
@@ -1009,7 +1010,7 @@ class Contact(TembaModel):
                         contact.urn_objects = contact_urns
 
                         # handle group and campaign updates
-                        contact.handle_update(attrs=updated_attrs)
+                        contact.handle_update(fields=updated_attrs)
                         return contact
 
         # perform everything in a org-level lock to prevent duplication by different instances
@@ -1099,7 +1100,7 @@ class Contact(TembaModel):
             analytics.gauge('temba.contact_created')
 
         # handle group and campaign updates
-        contact.handle_update(attrs=updated_attrs, urns=updated_urns)
+        contact.handle_update(fields=updated_attrs, urns=updated_urns)
         return contact
 
     @classmethod
@@ -1591,7 +1592,7 @@ class Contact(TembaModel):
 
         self.is_blocked = True
         self.modified_by = user
-        self.save(update_fields=('is_blocked', 'modified_on', 'modified_by'))
+        self.save(update_fields=('is_blocked', 'modified_on', 'modified_by'), handle_update=False)
 
     def unblock(self, user):
         """
@@ -1599,7 +1600,7 @@ class Contact(TembaModel):
         """
         self.is_blocked = False
         self.modified_by = user
-        self.save(update_fields=('is_blocked', 'modified_on', 'modified_by'))
+        self.save(update_fields=('is_blocked', 'modified_on', 'modified_by'), handle_update=False)
 
         self.reevaluate_dynamic_groups()
 
@@ -1614,7 +1615,7 @@ class Contact(TembaModel):
 
         self.is_stopped = True
         self.modified_by = user
-        self.save(update_fields=['is_stopped', 'modified_on', 'modified_by'])
+        self.save(update_fields=['is_stopped', 'modified_on', 'modified_by'], handle_update=False)
 
         self.clear_all_groups(get_anonymous_user())
 
@@ -1626,7 +1627,7 @@ class Contact(TembaModel):
         """
         self.is_stopped = False
         self.modified_by = user
-        self.save(update_fields=['is_stopped', 'modified_on', 'modified_by'])
+        self.save(update_fields=['is_stopped', 'modified_on', 'modified_by'], handle_update=False)
 
         # re-add them to any dynamic groups they would belong to
         self.reevaluate_dynamic_groups()
@@ -1926,7 +1927,7 @@ class Contact(TembaModel):
         urns_detached_qs.update(contact=None)
 
         self.modified_by = user
-        self.save(update_fields=('modified_on', 'modified_by'))
+        self.save(update_fields=('modified_on', 'modified_by'), handle_update=False)
 
         # trigger updates based all urns created or detached
         self.handle_update(urns=[six.text_type(u) for u in (urns_created + urns_attached + urns_detached)])
@@ -1951,15 +1952,16 @@ class Contact(TembaModel):
         for group in add_groups:
             group.update_contacts(user, [self], add=True)
 
-    def reevaluate_dynamic_groups(self, for_field=None):
+    def reevaluate_dynamic_groups(self, for_fields=None, urns=()):
         """
         Re-evaluates this contacts membership of dynamic groups. If field is specified then re-evaluation is only
         performed for those groups which reference that field.
         """
+
         affected_dynamic_groups = ContactGroup.get_user_groups(self.org, dynamic=True)
 
-        if for_field:
-            affected_dynamic_groups = affected_dynamic_groups.filter(query_fields=for_field)
+        if not urns and for_fields:
+            affected_dynamic_groups = affected_dynamic_groups.filter(query_fields__key__in=for_fields)
 
         group_change = False
         for group in affected_dynamic_groups:

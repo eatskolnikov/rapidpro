@@ -601,18 +601,24 @@ class EventFire(Model):
             EventFire.update_campaign_events_for_contact(campaign, contact)
 
     @classmethod
-    def update_events_for_contact_field(cls, contact, key):
+    def update_events_for_contact_field(cls, contact, keys):
         """
         Updates all the events for a contact, across all campaigns.
         Should be called anytime a contact field or contact group membership changes.
         """
+        # make sure we consider immutable fields(created_on)
+        keys = list(keys)
+        keys.extend(list(ContactField.IMMUTABLE_FIELDS))
+
         # get all the groups this user is in
         groups = [_.id for _ in contact.user_groups.all()]
 
-        # get all events which are in one of these groups and on this field
-        for event in CampaignEvent.objects.filter(campaign__group__in=groups, relative_to__key=key,
-                                                  campaign__is_archived=False, is_active=True):
+        events = CampaignEvent.objects.filter(campaign__group__in=groups, relative_to__key__in=keys,
+                                              campaign__is_archived=False, is_active=True)\
+            .prefetch_related("relative_to")
 
+        # get all events which are in one of these groups and on this field
+        for event in events:
             # remove any unfired events, they will get recreated below
             EventFire.objects.filter(event=event, contact=contact, fired=None).delete()
 
