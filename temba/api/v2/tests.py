@@ -1127,7 +1127,7 @@ class APITest(TembaTest):
         response = self.postJSON(url, None, {})
         self.assertEqual(response.status_code, 201)
 
-        empty = Contact.objects.get(name=None)
+        empty = Contact.objects.get(name=None, is_active=True)
 
         self.assertEqual(response.json(), {
             'uuid': empty.uuid,
@@ -1322,7 +1322,7 @@ class APITest(TembaTest):
         self.assertEndpointAccess(url, fetch_returns=405)
 
         # create some contacts to act on
-        Contact.objects.all().delete()
+        self.releaseContacts(delete=True)
         contact1 = self.create_contact("Ann", '+250788000001')
         contact2 = self.create_contact("Bob", '+250788000002')
         contact3 = self.create_contact("Cat", '+250788000003')
@@ -1788,7 +1788,7 @@ class APITest(TembaTest):
         response = self.deleteJSON(url, 'uuid=%s' % spammers.uuid)
         self.assert404(response)
 
-        ContactGroup.user_groups.all().delete()
+        self.release(ContactGroup.user_groups.all())
 
         for i in range(ContactGroup.MAX_ORG_CONTACTGROUPS):
             ContactGroup.create_static(self.org2, self.admin2, 'group%d' % i)
@@ -1899,9 +1899,8 @@ class APITest(TembaTest):
         response = self.deleteJSON(url, 'uuid=%s' % spam.uuid)
         self.assert404(response)
 
-        Label.all_objects.all().delete()
-
-        for i in range(Label.MAX_ORG_LABELS):
+        starting = Label.all_objects.all().count()
+        for i in range(Label.MAX_ORG_LABELS - starting + 1):
             Label.get_or_create(self.org, self.user, "label%d" % i)
 
         response = self.postJSON(url, None, {'name': "Interesting"})
@@ -2382,7 +2381,7 @@ class APITest(TembaTest):
         self.assertEqual(response.status_code, 204)
         self.assertEqual(set(Msg.objects.filter(visibility=Msg.VISIBILITY_VISIBLE)), {msg1})
         self.assertEqual(set(Msg.objects.filter(visibility=Msg.VISIBILITY_ARCHIVED)), {msg3})
-        self.assertEqual(set(Msg.objects.filter(visibility=Msg.VISIBILITY_DELETED)), {msg2})
+        self.assertFalse(Msg.objects.filter(id=msg2.id).exists())
 
         # try to act on a deleted message
         response = self.postJSON(url, None, {'messages': [msg2.id], 'action': 'restore'})

@@ -497,7 +497,7 @@ class ContactWriteSerializer(WriteSerializer):
                 self.instance.update_urns(self.context['user'], urns)
 
             if changed:
-                self.instance.save(update_fields=changed)
+                self.instance.save(update_fields=changed, handle_update=True)
         else:
             self.instance = Contact.get_or_create(self.context['org'], self.context['user'], name,
                                                   urns=urns, language=language)

@@ -1657,7 +1657,6 @@ class Contact(TembaModel):
             # now deactivate the contact itself
             self.is_active = False
             self.name = None
-            self.fields = None
             self.save(update_fields=("name", "is_active", "modified_on"), handle_update=False)
 
         # kick off a task to remove all the things related to us

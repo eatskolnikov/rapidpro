@@ -3180,12 +3180,16 @@ class FlowRun(models.Model):
                 self.delete_reason = delete_reason
                 self.save(update_fields=["delete_reason"])
 
+            # delete any action logs associated with us
+            ActionLog.objects.filter(run=self).delete()
+
+            # clear any runs that reference us
+            FlowRun.objects.filter(parent=self).update(parent=None)
+
             # remove each of our steps. we do this one at a time
             # so we can decrement the activity properly
             for step in self.steps.all():
                 step.release()
-
-            self.delete()
 
             # clear analytics results cache
             for ruleset in self.flow.rule_sets.all():
@@ -3193,6 +3197,8 @@ class FlowRun(models.Model):
 
             # clear any recent messages
             self.recent_messages.all().delete()
+
+            self.delete()
 
     def set_completed(self, final_step=None, completed_on=None):
         """
