@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 from __future__ import absolute_import, unicode_literals
 
-import json
 import pytz
 import six
 
 from datetime import datetime
+from unittest.mock import patch
+from urllib.parse import quote_plus
+from uuid import uuid4
+
+from rest_framework import serializers
+from rest_framework.test import APIClient
+
 from django.contrib.auth.models import Group
 from django.contrib.gis.geos import GEOSGeometry
 from django.urls import reverse
@@ -14,9 +20,7 @@ from django.db import connection
 from django.db.models import Q
 from django.test import override_settings
 from django.utils import timezone
-from mock import patch
-from rest_framework import serializers
-from rest_framework.test import APIClient
+
 from temba.campaigns.models import Campaign, CampaignEvent, EventFire
 from temba.channels.models import Channel, ChannelEvent
 from temba.contacts.models import Contact, ContactGroup, ContactField
@@ -26,8 +30,7 @@ from temba.msgs.models import Broadcast, Label, Msg
 from temba.orgs.models import Language
 from temba.tests import TembaTest, AnonymousOrg
 from temba.values.models import Value
-from uuid import uuid4
-from urllib.parse import quote_plus
+from temba.utils import json
 from temba.api.models import APIToken, Resthook, WebHookEvent
 from . import fields
 from .serializers import format_datetime
@@ -39,7 +42,7 @@ NUM_BASE_REQUEST_QUERIES = 7  # number of db queries required for any API reques
 class APITest(TembaTest):
 
     def setUp(self):
-        super(APITest, self).setUp()
+        super().setUp()
 
         self.joe = self.create_contact("Joe Blow", "0788123123")
         self.frank = self.create_contact("Frank", twitter="franky")
@@ -57,7 +60,7 @@ class APITest(TembaTest):
         connection.settings_dict['ATOMIC_REQUESTS'] = False
 
     def tearDown(self):
-        super(APITest, self).tearDown()
+        super().tearDown()
 
         connection.settings_dict['ATOMIC_REQUESTS'] = True
 

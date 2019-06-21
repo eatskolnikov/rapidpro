@@ -63,7 +63,7 @@ class WriteSerializer(serializers.Serializer):
                                      "To enable sending messages, please contact support."]
             })
 
-        return super(WriteSerializer, self).run_validation(data)
+        return super().run_validation(data)
 
 
 # ============================================================

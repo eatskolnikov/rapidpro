@@ -281,7 +281,7 @@ class BaseAPIView(generics.GenericAPIView):
 
     @transaction.non_atomic_requests
     def dispatch(self, request, *args, **kwargs):
-        return super(BaseAPIView, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def options(self, request, *args, **kwargs):
         """
@@ -334,7 +334,7 @@ class BaseAPIView(generics.GenericAPIView):
             raise InvalidQueryError("Value for %s must be a valid UUID" % name)
 
     def get_serializer_context(self):
-        context = super(BaseAPIView, self).get_serializer_context()
+        context = super().get_serializer_context()
         context['org'] = self.request.user.get_org()
         context['user'] = self.request.user
         return context

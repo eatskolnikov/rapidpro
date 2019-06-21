@@ -158,6 +158,7 @@ def add_testing_flag_to_context(*args):
 
 class TembaTest(SmartminTest):
     def setUp(self):
+        self.maxDiff = 4096
         self.mock_server = mock_server
 
         # if we are super verbose, turn on debug for sql queries
