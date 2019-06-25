@@ -1463,7 +1463,7 @@ class Contact(TembaModel):
         tmp_file = os.path.join(settings.MEDIA_ROOT, 'tmp/%s.%s' % (str(uuid4()), extension.lower()))
         filename.open()
 
-        out_file = open(tmp_file, 'w')
+        out_file = open(tmp_file, 'wb')
         out_file.write(filename.read())
         out_file.close()
 
@@ -2269,8 +2269,7 @@ class SystemContactGroupManager(models.Manager):
 
 class UserContactGroupManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(group_type=ContactGroup.TYPE_USER_DEFINED,
-                                                                          is_active=True)
+        return super().get_queryset().filter(group_type=ContactGroup.TYPE_USER_DEFINED, is_active=True)
 
 
 @six.python_2_unicode_compatible

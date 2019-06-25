@@ -1681,17 +1681,6 @@ class Msg(models.Model):
         self.visibility = Msg.VISIBILITY_VISIBLE
         self.save(update_fields=('visibility', 'modified_on'))
 
-    def release(self):
-        """
-        Releases (i.e. deletes) this message
-        """
-        self.visibility = Msg.VISIBILITY_DELETED
-        self.text = ""
-        self.save(update_fields=('visibility', 'text', 'modified_on'))
-
-        # remove labels
-        self.labels.clear()
-
     def release(self, delete_reason=DELETE_FOR_USER):
         """
         Releases (i.e. deletes) this message

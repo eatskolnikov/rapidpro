@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import iptools
 import os
 import sys
+import analytics
 
 from celery.schedules import crontab
 from datetime import timedelta
@@ -51,6 +52,8 @@ OUTGOING_REQUEST_HEADERS = {'User-agent': 'RapidPro'}
 AWS_STORAGE_BUCKET_NAME = 'dl-temba-io'
 AWS_BUCKET_DOMAIN = AWS_STORAGE_BUCKET_NAME + '.s3.amazonaws.com'
 STORAGE_ROOT_DIR = 'test_orgs' if TESTING else 'orgs'
+
+analytics.write_key = 'YOUR_WRITE_KEY'
 
 # -----------------------------------------------------------------------------------
 # On Unix systems, a value of None will cause Django to use the same

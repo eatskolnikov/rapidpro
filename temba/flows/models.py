@@ -3906,7 +3906,7 @@ class RuleSet(models.Model):
                 rule = query.get('rule', {})
 
                 if value:
-                    query['value'] = value.strip() if type(value) is str or type(value) is unicode else value
+                    query['value'] = value.strip() if isinstance(value, str) else value
 
                 if rule.get('type') == 'date_equal':
                     rule_value = query.get('value')

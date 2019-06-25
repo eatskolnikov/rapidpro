@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import json
 import six
 import pytz
 
@@ -9,11 +8,12 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django.utils import timezone
 from temba.campaigns.tasks import check_campaigns_task
-from temba.contacts.models import ContactField
+from temba.contacts.models import ImportTask, Contact, ContactField
 from temba.flows.models import FlowRun, Flow, RuleSet, ActionSet, FlowRevision
 from temba.msgs.models import Msg
 from temba.orgs.models import Language, get_current_export_version
 from temba.tests import TembaTest
+from temba.utils import json
 from .models import Campaign, CampaignEvent, EventFire
 
 
@@ -36,7 +36,8 @@ class CampaignTest(TembaTest):
         self.voice_flow = self.create_flow(name="IVR flow", flow_type='V')
 
         # create a contact field for our planting date
-        self.planting_date = ContactField.get_or_create(self.org, self.admin, 'planting_date', "Planting Date")
+        self.planting_date = ContactField.get_or_create(self.org, self.admin, 'planting_date', "Planting Date",
+                                                        value_type='D')
 
     def test_get_unique_name(self):
         campaign1 = Campaign.create(self.org, self.admin, Campaign.get_unique_name(self.org, "Reminders"), self.farmers)
@@ -382,7 +383,8 @@ class CampaignTest(TembaTest):
         post_data = dict(action='archive', objects=[self.reminder_flow.pk, self.reminder2_flow.pk])
         response = self.client.post(reverse('flows.flow_list'), post_data)
         self.assertEqual('Planting Reminder and Reminder Flow are used inside a campaign. To archive them, first remove them from your campaigns.', response.get('Temba-Toast'))
-        CampaignEvent.objects.filter(flow=self.reminder2_flow.pk).delete()
+        for e in CampaignEvent.objects.filter(flow=self.reminder2_flow.pk):
+            e.release()
 
         # archive the campaign
         post_data = dict(action='archive', objects=campaign.pk)
@@ -456,7 +458,7 @@ class CampaignTest(TembaTest):
         self.assertEqual(event, fire.event)
         self.assertEqual(str(fire), "%s - %s" % (fire.event, fire.contact))
 
-        event = CampaignEvent.objects.get()
+        event = CampaignEvent.objects.filter(is_active=True).first()
 
         # get the detail page of the event
         response = self.client.get(reverse('campaigns.campaignevent_read', args=[event.pk]))
@@ -506,8 +508,6 @@ class CampaignTest(TembaTest):
         extra_fields = [dict(key='planting_date', header='planting_date', label='Planting Date', type='D')]
         import_params = dict(org_id=self.org.id, timezone=six.text_type(self.org.timezone), extra_fields=extra_fields, original_filename=filename)
 
-        from temba.contacts.models import ImportTask, Contact
-        import json
         task = ImportTask.objects.create(
             created_by=self.admin, modified_by=self.admin,
             csv_file='test_imports/' + filename,

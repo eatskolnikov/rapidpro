@@ -271,7 +271,7 @@ class ContactForm(forms.ModelForm):
 
                 last_urn = urn
 
-        self.fields = OrderedDict(self.fields.items() + extra_fields)
+        self.fields = OrderedDict(list(self.fields.items()) + extra_fields)
 
     def clean(self):
         country = self.org.get_country_code()
