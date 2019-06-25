@@ -4748,7 +4748,7 @@ class ExportFlowResultsTask(BaseExportTask):
 
         # the full sheets we need for runs
         if include_runs:
-            for i in range(all_runs_count / self.MAX_EXCEL_ROWS + 1):
+            for i in range(all_runs_count // self.MAX_EXCEL_ROWS + 1):
                 total_run_sheet_count += 1
                 name = "Runs" if (i + 1) <= 1 else "Runs (%d)" % (i + 1)
                 book.create_sheet(name)
@@ -4757,7 +4757,7 @@ class ExportFlowResultsTask(BaseExportTask):
         total_merged_run_sheet_count = 0
 
         # the full sheets we need for contacts
-        for i in range(contacts_count / self.MAX_EXCEL_ROWS + 1):
+        for i in range(contacts_count // self.MAX_EXCEL_ROWS + 1):
             total_merged_run_sheet_count += 1
             name = "Contacts" if (i + 1) <= 1 else "Contacts (%d)" % (i + 1)
             book.create_sheet(name)

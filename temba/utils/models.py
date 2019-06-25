@@ -145,5 +145,5 @@ class ChunkIterator(object):
     def __iter__(self):
         return self
 
-    def next(self):
-        return self._generator.next()
+    def __next__(self):
+        return self._generator.__next__()

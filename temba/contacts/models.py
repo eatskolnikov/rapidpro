@@ -2642,7 +2642,7 @@ class ExportContactsTask(BaseExportTask):
 
             scheme_counts = {scheme: ContactURN.objects.filter(org=self.org, scheme=scheme).exclude(contact=None).values('contact').annotate(count=Count('contact')).aggregate(Max('count'))['count__max'] for scheme in active_urn_schemes}
 
-            schemes = scheme_counts.keys()
+            schemes = list(scheme_counts.keys())
             schemes.sort()
 
             for scheme in schemes:
