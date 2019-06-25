@@ -738,7 +738,7 @@ class QueueTest(TembaTest):
 class ExpressionsTest(TembaTest):
 
     def setUp(self):
-        super(ExpressionsTest, self).setUp()
+        super().setUp()
 
         contact = self.create_contact("Joe Blow", "123")
         contact.language = u'eng'
@@ -1056,7 +1056,7 @@ class ChunkTest(TembaTest):
 
 class ExportTest(TembaTest):
     def setUp(self):
-        super(ExportTest, self).setUp()
+        super().setUp()
 
         self.group = self.create_group("New contacts", [])
         self.task = ExportContactsTask.objects.create(org=self.org, group=self.group,

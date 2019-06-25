@@ -1953,7 +1953,7 @@ class AnonOrgTest(TembaTest):
     """
 
     def setUp(self):
-        super(AnonOrgTest, self).setUp()
+        super().setUp()
 
         self.org.is_anon = True
         self.org.save()
@@ -3017,7 +3017,7 @@ class UnreadCountTest(FlowFileTest):
 
 class EmailContextProcessorsTest(SmartminTest):
     def setUp(self):
-        super(EmailContextProcessorsTest, self).setUp()
+        super().setUp()
         self.admin = self.create_user("Administrator")
         self.middleware = BrandingMiddleware()
 

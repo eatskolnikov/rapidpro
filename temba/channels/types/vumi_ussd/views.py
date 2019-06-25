@@ -44,4 +44,4 @@ class ClaimView(AuthenticatedExternalClaimView):
                                                                api_url=api_url),
                                                           role=Channel.ROLE_USSD)
 
-        return super(AuthenticatedExternalClaimView, self).form_valid(form)
+        return super().form_valid(form)

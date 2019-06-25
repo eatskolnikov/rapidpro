@@ -54,7 +54,7 @@ from .tasks import update_run_expirations_task, prune_recentmessages, squash_flo
 class FlowTest(TembaTest):
 
     def setUp(self):
-        super(FlowTest, self).setUp()
+        super().setUp()
 
         self.contact = self.create_contact('Eric', '+250788382382')
         self.contact2 = self.create_contact('Nic', '+250788383383')
@@ -2883,7 +2883,7 @@ class FlowTest(TembaTest):
 class ActionTest(TembaTest):
 
     def setUp(self):
-        super(ActionTest, self).setUp()
+        super().setUp()
 
         self.contact = self.create_contact('Eric', '+250788382382')
         self.contact2 = self.create_contact('Nic', '+250788383383')
@@ -3902,7 +3902,7 @@ class ActionTest(TembaTest):
 class FlowRunTest(TembaTest):
 
     def setUp(self):
-        super(FlowRunTest, self).setUp()
+        super().setUp()
 
         self.flow = self.get_flow('color')
         self.contact = self.create_contact("Ben Haggerty", "+250788123123")
@@ -4131,11 +4131,11 @@ class FlowLabelTest(FlowFileTest):
 class WebhookTest(TembaTest):
 
     def setUp(self):
-        super(WebhookTest, self).setUp()
+        super().setUp()
         settings.SEND_WEBHOOKS = True
 
     def tearDown(self):
-        super(WebhookTest, self).tearDown()
+        super().tearDown()
         settings.SEND_WEBHOOKS = False
 
     def test_webhook_subflow_extra(self):
@@ -7321,7 +7321,7 @@ class DuplicateValueTest(FlowFileTest):
 class ChannelSplitTest(FlowFileTest):
 
     def setUp(self):
-        super(ChannelSplitTest, self).setUp()
+        super().setUp()
 
         # update our channel to have a 206 address
         self.channel.address = '+12065551212'
@@ -7505,13 +7505,13 @@ class TriggerStartTest(FlowFileTest):
 class FlowBatchTest(FlowFileTest):
 
     def setUp(self):
-        super(FlowBatchTest, self).setUp()
+        super().setUp()
         from temba.flows import models as flow_models
         self.orig_batch_size = flow_models.START_FLOW_BATCH_SIZE
         flow_models.START_FLOW_BATCH_SIZE = 10
 
     def tearDown(self):
-        super(FlowBatchTest, self).tearDown()
+        super().tearDown()
         from temba.flows import models as flow_models
         flow_models.START_FLOW_BATCH_SIZE = self.orig_batch_size
 
@@ -7678,7 +7678,7 @@ class ExitTest(FlowFileTest):
 class OrderingTest(FlowFileTest):
 
     def setUp(self):
-        super(OrderingTest, self).setUp()
+        super().setUp()
 
         self.contact2 = self.create_contact('Ryan Lewis', '+12065552121')
 
@@ -7687,7 +7687,7 @@ class OrderingTest(FlowFileTest):
                                       config=dict(send_url='https://google.com'))
 
     def tearDown(self):
-        super(OrderingTest, self).tearDown()
+        super().tearDown()
 
     def test_two_in_row(self):
         flow = self.get_flow('ordering')
@@ -8092,7 +8092,7 @@ class TriggerFlowTest(FlowFileTest):
 class StackedExitsTest(FlowFileTest):
 
     def setUp(self):
-        super(StackedExitsTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'KE', 'EX', None, '+250788123123', schemes=['tel'],
@@ -8169,7 +8169,7 @@ class StackedExitsTest(FlowFileTest):
 class ParentChildOrderingTest(FlowFileTest):
 
     def setUp(self):
-        super(ParentChildOrderingTest, self).setUp()
+        super().setUp()
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'KE', 'EX', None, '+250788123123', schemes=['tel'],
                                       config=dict(send_url='https://google.com'))
@@ -8192,7 +8192,7 @@ class ParentChildOrderingTest(FlowFileTest):
 
 class AndroidChildStatus(FlowFileTest):
     def setUp(self):
-        super(AndroidChildStatus, self).setUp()
+        super().setUp()
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'RW', 'A', None, '+250788123123', schemes=['tel'])
 
@@ -8218,7 +8218,7 @@ class AndroidChildStatus(FlowFileTest):
 class FlowChannelSelectionTest(FlowFileTest):
 
     def setUp(self):
-        super(FlowChannelSelectionTest, self).setUp()
+        super().setUp()
         self.channel.delete()
         self.sms_channel = Channel.create(
             self.org, self.user, 'RW', 'JN', None, '+250788123123',

@@ -10,7 +10,7 @@ from ...models import Channel
 
 class FirebaseCloudMessagingTypeTest(TembaTest):
     def setUp(self):
-        super(FirebaseCloudMessagingTypeTest, self).setUp()
+        super().setUp()
 
         self.channel = Channel.create(self.org, self.user, None, 'FCM', name="Firebase", address="87654",
                                       role="SR", schemes=['fcm'],

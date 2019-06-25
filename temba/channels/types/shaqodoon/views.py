@@ -41,4 +41,4 @@ class ClaimView(AuthenticatedExternalClaimView):
                                                                username=data['username'],
                                                                password=data['password']))
 
-        return super(AuthenticatedExternalClaimView, self).form_valid(form)
+        return super().form_valid(form)

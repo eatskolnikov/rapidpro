@@ -94,4 +94,4 @@ class ClaimView(ClaimViewMixin, SmartFormView):
         self.object.config = json.dumps(config)
         self.object.save()
 
-        return super(ClaimView, self).form_valid(form)
+        return super().form_valid(form)

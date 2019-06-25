@@ -46,7 +46,7 @@ class RemoveContactForm(forms.Form):
         org = kwargs.pop('org')
         self.user = kwargs.pop('user')
 
-        super(RemoveContactForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.fields['contact'].queryset = Contact.objects.filter(org=org)
         self.fields['group'].queryset = ContactGroup.user_groups.filter(org=org)
@@ -73,7 +73,7 @@ class ContactGroupForm(forms.ModelForm):
 
     def __init__(self, user, *args, **kwargs):
         self.user = user
-        super(ContactGroupForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean_name(self):
         name = self.cleaned_data['name'].strip()
@@ -144,7 +144,7 @@ class ContactListView(OrgPermsMixin, SmartListView):
         if self.system_group and 'search' not in self.request.GET:
             self.object_list.count = lambda: counts[self.system_group]
 
-        context = super(ContactListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         folders = [
             dict(count=counts[ContactGroup.TYPE_ALL], label=_("All Contacts"), url=reverse('contacts.contact_list')),
@@ -198,7 +198,7 @@ class ContactActionMixin(SmartListView):
 
     @csrf_exempt
     def dispatch(self, *args, **kwargs):
-        return super(ContactActionMixin, self).dispatch(*args, **kwargs)
+        return super().dispatch(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         user = self.request.user
@@ -218,7 +218,7 @@ class ContactFieldForm(forms.ModelForm):
     field_value = forms.CharField(required=False)
 
     def __init__(self, *args, **kwargs):
-        super(ContactFieldForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     class Meta:
         model = Contact
@@ -230,7 +230,7 @@ class ContactForm(forms.ModelForm):
         self.user = kwargs['user']
         self.org = self.user.get_org()
         del kwargs['user']
-        super(ContactForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         # add all URN scheme fields if org is not anon
         extra_fields = []
@@ -321,7 +321,7 @@ class UpdateContactForm(ContactForm):
                                             help_text=_("Add or remove groups this contact belongs to"))
 
     def __init__(self, *args, **kwargs):
-        super(UpdateContactForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         choices = [('', 'No Preference')]
 
@@ -428,7 +428,7 @@ class ContactCRUDL(SmartCRUDL):
             def __init__(self, *args, **kwargs):
                 self.org = kwargs['org']
                 del kwargs['org']
-                super(ContactCRUDL.Customize.CustomizeForm, self).__init__(*args, **kwargs)
+                super().__init__(*args, **kwargs)
 
             def clean(self):
                 existing_contact_fields = ContactField.objects.filter(org=self.org, is_active=True).values('key', 'label')
@@ -472,7 +472,7 @@ class ContactCRUDL(SmartCRUDL):
         form_class = CustomizeForm
 
         def pre_process(self, request, *args, **kwargs):
-            pre_process = super(ContactCRUDL.Customize, self).pre_process(request, *args, **kwargs)
+            pre_process = super().pre_process(request, *args, **kwargs)
             if pre_process is not None:  # pragma: needs cover
                 return pre_process
 
@@ -533,7 +533,7 @@ class ContactCRUDL(SmartCRUDL):
             return column_controls
 
         def get_context_data(self, **kwargs):
-            context = super(ContactCRUDL.Customize, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
 
             org = self.derive_org()
 
@@ -546,12 +546,12 @@ class ContactCRUDL(SmartCRUDL):
             return context
 
         def get_form_kwargs(self):
-            kwargs = super(ContactCRUDL.Customize, self).get_form_kwargs()
+            kwargs = super().get_form_kwargs()
             kwargs['org'] = self.derive_org()
             return kwargs
 
         def get_form(self):
-            form = super(ContactCRUDL.Customize, self).get_form()
+            form = super().get_form()
             form.fields.clear()
 
             self.column_controls = self.create_column_controls(self.headers)
@@ -607,7 +607,7 @@ class ContactCRUDL(SmartCRUDL):
             def __init__(self, *args, **kwargs):
                 self.org = kwargs['org']
                 del kwargs['org']
-                super(ContactCRUDL.Import.ImportForm, self).__init__(*args, **kwargs)
+                super().__init__(*args, **kwargs)
 
             def clean_csv_file(self):
                 if not regex.match(r'^[A-Za-z0-9_.\-*() ]+$', self.cleaned_data['csv_file'].name, regex.V0):
@@ -642,7 +642,7 @@ class ContactCRUDL(SmartCRUDL):
         success_message = ''
 
         def pre_save(self, task):
-            super(ContactCRUDL.Import, self).pre_save(task)
+            super().pre_save(task)
             previous_import = ImportTask.objects.filter(created_by=self.request.user).order_by('-created_on').first()
             if previous_import and previous_import.created_on < timezone.now() - timedelta(hours=24):  # pragma: needs cover
                 analytics.track(self.request.user.username, 'temba.contact_imported')
@@ -659,12 +659,12 @@ class ContactCRUDL(SmartCRUDL):
             return task
 
         def get_form_kwargs(self):
-            kwargs = super(ContactCRUDL.Import, self).get_form_kwargs()
+            kwargs = super().get_form_kwargs()
             kwargs['org'] = self.derive_org()
             return kwargs
 
         def get_context_data(self, **kwargs):
-            context = super(ContactCRUDL.Import, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
             context['task'] = None
             context['group'] = None
             context['show_form'] = True
@@ -731,7 +731,7 @@ class ContactCRUDL(SmartCRUDL):
                 self.org = kwargs['org']
                 del kwargs['org']
 
-                super(ContactCRUDL.ImportSalesforce.ImportSalesforceForm, self).__init__(*args, **kwargs)
+                super().__init__(*args, **kwargs)
 
                 default_group_name = 'Salesforce Import %s' % datetime_to_str(timezone.now(), format='%m.%d.%Y', ms=False, tz=self.org.timezone)
                 groups_count = ContactGroup.user_groups.filter(org=self.org, name__icontains=default_group_name).only('name').count()
@@ -789,12 +789,12 @@ class ContactCRUDL(SmartCRUDL):
         title = 'Import Salesforce Contacts'
 
         def get_form_kwargs(self):
-            kwargs = super(ContactCRUDL.ImportSalesforce, self).get_form_kwargs()
+            kwargs = super().get_form_kwargs()
             kwargs['org'] = self.derive_org()
             return kwargs
 
         def get_context_data(self, **kwargs):
-            context = super(ContactCRUDL.ImportSalesforce, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
 
             org = self.request.user.get_org()
 
@@ -954,7 +954,7 @@ class ContactCRUDL(SmartCRUDL):
             return Contact.objects.filter(is_active=True, is_test=False)
 
         def get_context_data(self, **kwargs):
-            context = super(ContactCRUDL.Read, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
 
             contact = self.object
 
@@ -1066,7 +1066,7 @@ class ContactCRUDL(SmartCRUDL):
             return Contact.objects.filter(is_active=True, is_test=False)
 
         def get_context_data(self, *args, **kwargs):
-            context = super(ContactCRUDL.History, self).get_context_data(*args, **kwargs)
+            context = super().get_context_data(*args, **kwargs)
             contact = self.get_object()
 
             # since we create messages with timestamps from external systems, always a chance a contact's initial
@@ -1138,7 +1138,7 @@ class ContactCRUDL(SmartCRUDL):
             return links
 
         def get_context_data(self, *args, **kwargs):
-            context = super(ContactCRUDL.List, self).get_context_data(*args, **kwargs)
+            context = super().get_context_data(*args, **kwargs)
             org = self.request.user.get_org()
 
             (sf_instance_url, sf_access_token, sf_refresh_token) = org.get_salesforce_credentials()
@@ -1169,7 +1169,7 @@ class ContactCRUDL(SmartCRUDL):
             from temba.orgs.models import FLOW_OPT_IN
             from temba.flows.models import Flow
 
-            context = super(ContactCRUDL.Invite, self).get_context_data(*args, **kwargs)
+            context = super().get_context_data(*args, **kwargs)
 
             org = self.request.user.get_org()
             counts = ContactGroup.get_system_group_counts(org)
@@ -1252,7 +1252,7 @@ class ContactCRUDL(SmartCRUDL):
             from temba.orgs.models import FLOW_OPT_IN
             from temba.flows.models import Flow
 
-            context = super(ContactCRUDL.InviteFilter, self).get_context_data(*args, **kwargs)
+            context = super().get_context_data(*args, **kwargs)
 
             org = self.request.user.get_org()
             group = self.derive_group()
@@ -1307,7 +1307,7 @@ class ContactCRUDL(SmartCRUDL):
         system_group = ContactGroup.TYPE_BLOCKED
 
         def get_context_data(self, *args, **kwargs):
-            context = super(ContactCRUDL.Blocked, self).get_context_data(*args, **kwargs)
+            context = super().get_context_data(*args, **kwargs)
             context['actions'] = ('unblock', 'delete') if self.has_org_perm("contacts.contact_delete") else ('unblock',)
             context['reply_disabled'] = True
 
@@ -1323,7 +1323,7 @@ class ContactCRUDL(SmartCRUDL):
         system_group = ContactGroup.TYPE_STOPPED
 
         def get_context_data(self, *args, **kwargs):
-            context = super(ContactCRUDL.Stopped, self).get_context_data(*args, **kwargs)
+            context = super().get_context_data(*args, **kwargs)
             context['actions'] = ['block', 'unstop']
             context['reply_disabled'] = True
 
@@ -1362,7 +1362,7 @@ class ContactCRUDL(SmartCRUDL):
             return links
 
         def get_context_data(self, *args, **kwargs):
-            context = super(ContactCRUDL.Filter, self).get_context_data(*args, **kwargs)
+            context = super().get_context_data(*args, **kwargs)
 
             group = self.derive_group()
             org = self.request.user.get_org()
@@ -1396,15 +1396,15 @@ class ContactCRUDL(SmartCRUDL):
         submit_button_name = _("Create")
 
         def get_form_kwargs(self, *args, **kwargs):
-            form_kwargs = super(ContactCRUDL.Create, self).get_form_kwargs(*args, **kwargs)
+            form_kwargs = super().get_form_kwargs(*args, **kwargs)
             form_kwargs['user'] = self.request.user
             return form_kwargs
 
         def get_form(self):
-            return super(ContactCRUDL.Create, self).get_form()
+            return super().get_form()
 
         def pre_save(self, obj):
-            obj = super(ContactCRUDL.Create, self).pre_save(obj)
+            obj = super().pre_save(obj)
             obj.org = self.request.user.get_org()
             return obj
 
@@ -1426,7 +1426,7 @@ class ContactCRUDL(SmartCRUDL):
         submit_button_name = _("Save Changes")
 
         def derive_queryset(self):
-            qs = super(ContactCRUDL.Update, self).derive_queryset()
+            qs = super().derive_queryset()
             return qs.filter(is_test=False)
 
         def derive_exclude(self):
@@ -1443,27 +1443,27 @@ class ContactCRUDL(SmartCRUDL):
             return exclude
 
         def get_form_kwargs(self, *args, **kwargs):
-            form_kwargs = super(ContactCRUDL.Update, self).get_form_kwargs(*args, **kwargs)
+            form_kwargs = super().get_form_kwargs(*args, **kwargs)
             form_kwargs['user'] = self.request.user
             return form_kwargs
 
         def get_form(self):
-            return super(ContactCRUDL.Update, self).get_form()
+            return super().get_form()
 
         def save(self, obj):
-            super(ContactCRUDL.Update, self).save(obj)
+            super().save(obj)
 
             new_groups = self.form.cleaned_data.get('groups')
             if new_groups is not None:
                 obj.update_static_groups(self.request.user, new_groups)
 
         def get_context_data(self, **kwargs):
-            context = super(ContactCRUDL.Update, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
             context['schemes'] = ContactURN.SCHEME_CHOICES
             return context
 
         def post_save(self, obj):
-            obj = super(ContactCRUDL.Update, self).post_save(obj)
+            obj = super().post_save(obj)
 
             if not self.org.is_anon:
                 urns = []
@@ -1497,10 +1497,10 @@ class ContactCRUDL(SmartCRUDL):
         submit_button_name = _("Save Changes")
 
         def get_form_kwargs(self, *args, **kwargs):
-            return super(ContactCRUDL.UpdateFields, self).get_form_kwargs(*args, **kwargs)
+            return super().get_form_kwargs(*args, **kwargs)
 
         def get_context_data(self, **kwargs):
-            context = super(ContactCRUDL.UpdateFields, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
             org = self.request.user.get_org()
             field_id = self.request.GET.get('field', 0)
             if field_id:
@@ -1508,7 +1508,7 @@ class ContactCRUDL(SmartCRUDL):
             return context
 
         def post_save(self, obj):
-            obj = super(ContactCRUDL.UpdateFields, self).post_save(obj)
+            obj = super().post_save(obj)
             contact_field = obj.org.contactfields.get(id=self.form.cleaned_data.get('contact_field'))
             if contact_field:
                 obj.set_field(self.request.user, contact_field.key, self.form.cleaned_data.get('field_value', ''))
@@ -1520,7 +1520,7 @@ class ContactCRUDL(SmartCRUDL):
         view for UpdateFields to show different inputs based on the selected field.
         """
         def get_context_data(self, **kwargs):
-            context = super(ContactCRUDL.UpdateFieldsInput, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
             field_id = self.request.GET.get('field', 0)
             if field_id:
                 contact_field = ContactField.objects.filter(id=field_id).first()
@@ -1608,7 +1608,7 @@ class ContactGroupCRUDL(SmartCRUDL):
                     self.object.update_contacts(user, contacts, add=True)
 
         def get_form_kwargs(self):
-            kwargs = super(ContactGroupCRUDL.Create, self).get_form_kwargs()
+            kwargs = super().get_form_kwargs()
             kwargs['user'] = self.request.user
             return kwargs
 
@@ -1622,12 +1622,12 @@ class ContactGroupCRUDL(SmartCRUDL):
             return ('name', 'query') if self.get_object().is_dynamic else ('name',)
 
         def get_form_kwargs(self):
-            kwargs = super(ContactGroupCRUDL.Update, self).get_form_kwargs()
+            kwargs = super().get_form_kwargs()
             kwargs['user'] = self.request.user
             return kwargs
 
         def post_save(self, obj):
-            obj = super(ContactGroupCRUDL.Update, self).post_save(obj)
+            obj = super().post_save(obj)
             if obj.query:
                 obj.update_query(obj.query)
             return obj
@@ -1639,7 +1639,7 @@ class ContactGroupCRUDL(SmartCRUDL):
         fields = ('id',)
 
         def get_context_data(self, **kwargs):
-            context = super(ContactGroupCRUDL.Delete, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
             context['triggers'] = self.get_object().trigger_set.filter(is_archived=False)
             return context
 
@@ -1678,7 +1678,7 @@ class ManageFieldsForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.org = kwargs['org']
         del kwargs['org']
-        super(ManageFieldsForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def clean(self):
         used_labels = []
@@ -1715,7 +1715,7 @@ class ContactFieldCRUDL(SmartCRUDL):
 
     class List(OrgPermsMixin, SmartListView):
         def get_queryset(self, **kwargs):
-            qs = super(ContactFieldCRUDL.List, self).get_queryset(**kwargs)
+            qs = super().get_queryset(**kwargs)
             qs = qs.filter(org=self.request.user.get_org(), is_active=True)
 
             query = self.request.GET.get('search', None)
@@ -1729,7 +1729,7 @@ class ContactFieldCRUDL(SmartCRUDL):
         paginate_by = None
 
         def get_queryset(self, **kwargs):
-            qs = super(ContactFieldCRUDL.Json, self).get_queryset(**kwargs)
+            qs = super().get_queryset(**kwargs)
             qs = qs.filter(org=self.request.user.get_org(), is_active=True)
             return qs
 
@@ -1757,7 +1757,7 @@ class ContactFieldCRUDL(SmartCRUDL):
         form_class = ManageFieldsForm
 
         def get_context_data(self, **kwargs):
-            context = super(ContactFieldCRUDL.Managefields, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
             num_fields = ContactField.objects.filter(org=self.request.user.get_org(), is_active=True).count()
 
             contact_fields = []
@@ -1772,12 +1772,12 @@ class ContactFieldCRUDL(SmartCRUDL):
             return context
 
         def get_form_kwargs(self):
-            kwargs = super(ContactFieldCRUDL.Managefields, self).get_form_kwargs()
+            kwargs = super().get_form_kwargs()
             kwargs['org'] = self.derive_org()
             return kwargs
 
         def get_form(self):
-            form = super(ContactFieldCRUDL.Managefields, self).get_form()
+            form = super().get_form()
             form.fields.clear()
 
             org = self.request.user.get_org()

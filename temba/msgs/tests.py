@@ -39,7 +39,7 @@ from temba.utils.queues import DEFAULT_PRIORITY
 class MsgTest(TembaTest):
 
     def setUp(self):
-        super(MsgTest, self).setUp()
+        super().setUp()
 
         self.joe = self.create_contact("Joe Blow", "123")
         self.frank = self.create_contact("Frank Blow", "321")
@@ -863,7 +863,7 @@ class MsgTest(TembaTest):
 
 class MsgCRUDLTest(TembaTest):
     def setUp(self):
-        super(MsgCRUDLTest, self).setUp()
+        super().setUp()
 
         self.joe = self.create_contact("Joe Blow", "+250788000001")
         self.frank = self.create_contact("Frank Blow", "250788000002")
@@ -936,7 +936,7 @@ class MsgCRUDLTest(TembaTest):
 
 class BroadcastTest(TembaTest):
     def setUp(self):
-        super(BroadcastTest, self).setUp()
+        super().setUp()
 
         self.joe = self.create_contact("Joe Blow", "123")
         self.frank = self.create_contact("Frank Blow", "321")
@@ -1506,7 +1506,7 @@ class BroadcastTest(TembaTest):
 
 class BroadcastCRUDLTest(TembaTest):
     def setUp(self):
-        super(BroadcastCRUDLTest, self).setUp()
+        super().setUp()
 
         self.joe = Contact.get_or_create(self.org, self.user, name="Joe Blow", urns=["tel:123"])
         self.frank = Contact.get_or_create(self.org, self.user, name="Frank Blow", urns=["tel:1234"])
@@ -1606,7 +1606,7 @@ class BroadcastCRUDLTest(TembaTest):
 class LabelTest(TembaTest):
 
     def setUp(self):
-        super(LabelTest, self).setUp()
+        super().setUp()
 
         self.joe = self.create_contact("Joe Blow", number="073835001")
         self.frank = self.create_contact("Frank", number="073835002")
@@ -1904,7 +1904,7 @@ class ConsoleTest(TembaTest):
     def setUp(self):
         from temba.triggers.models import Trigger
 
-        super(ConsoleTest, self).setUp()
+        super().setUp()
         self.create_secondary_org()
 
         # create a new console
@@ -1978,7 +1978,7 @@ class ConsoleTest(TembaTest):
 class BroadcastLanguageTest(TembaTest):
 
     def setUp(self):
-        super(BroadcastLanguageTest, self).setUp()
+        super().setUp()
 
         self.francois = self.create_contact('Francois', '+12065551213')
         self.francois.language = 'fre'
@@ -2124,7 +2124,7 @@ class SystemLabelTest(TembaTest):
 
 class TagsTest(TembaTest):
     def setUp(self):
-        super(TagsTest, self).setUp()
+        super().setUp()
 
         self.joe = self.create_contact("Joe Blow", "123")
 
@@ -2188,7 +2188,7 @@ class TagsTest(TembaTest):
 class CeleryTaskTest(TembaTest):
 
     def setUp(self):
-        super(CeleryTaskTest, self).setUp()
+        super().setUp()
 
         self.applied_tasks = []
 

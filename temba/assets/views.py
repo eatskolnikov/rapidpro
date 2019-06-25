@@ -45,7 +45,7 @@ class AssetDownloadView(SmartTemplateView):
         return self.request.user.is_authenticated
 
     def get_context_data(self, **kwargs):
-        context = super(AssetDownloadView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         type_ = kwargs.pop('type')
         asset_store = get_asset_store(type_)

@@ -33,13 +33,13 @@ class TranslatableField(HStoreField):
                     raise ValidationError("Translation for '%s' exceeds the %d character limit." % (lang, self.max_length))
 
     def __init__(self, max_length, **kwargs):
-        super(TranslatableField, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
         self.max_length = max_length
 
     @cached_property
     def validators(self):
-        return super(TranslatableField, self).validators + [TranslatableField.Validator(self.max_length)]
+        return super().validators + [TranslatableField.Validator(self.max_length)]
 
 
 class TembaModel(SmartModel):

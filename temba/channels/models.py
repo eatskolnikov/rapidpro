@@ -1505,7 +1505,7 @@ class ChannelEvent(models.Model):
 class SendException(Exception):
 
     def __init__(self, description, event=None, events=None, fatal=False, start=None):
-        super(SendException, self).__init__(description)
+        super().__init__(description)
 
         if events is None and event:
             events = [event]
@@ -1963,7 +1963,7 @@ class ChannelSession(SmartModel):
                                    help_text="The length of this session in seconds")
 
     def __init__(self, *args, **kwargs):
-        super(ChannelSession, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         """ This is needed when referencing `session` from `FlowRun`. Since
         the FK is bound to ChannelSession, when it initializes an instance from

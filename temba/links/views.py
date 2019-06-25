@@ -43,7 +43,7 @@ class LinkActionMixin(SmartListView):
 
     @csrf_exempt
     def dispatch(self, *args, **kwargs):
-        return super(LinkActionMixin, self).dispatch(*args, **kwargs)
+        return super().dispatch(*args, **kwargs)
 
     def post(self, request, *args, **kwargs):
         user = self.request.user
@@ -72,7 +72,7 @@ class LinkCRUDL(SmartCRUDL):
 
     class OrgQuerysetMixin(object):
         def derive_queryset(self, *args, **kwargs):
-            queryset = super(LinkCRUDL.OrgQuerysetMixin, self).derive_queryset(*args, **kwargs)
+            queryset = super().derive_queryset(*args, **kwargs)
             if not self.request.user.is_authenticated:  # pragma: needs cover
                 return queryset.exclude(pk__gt=0)
             else:
@@ -82,7 +82,7 @@ class LinkCRUDL(SmartCRUDL):
         class LinkCreateForm(BaseFlowForm):
 
             def __init__(self, user, *args, **kwargs):
-                super(LinkCRUDL.Create.LinkCreateForm, self).__init__(*args, **kwargs)
+                super().__init__(*args, **kwargs)
                 self.user = user
 
             class Meta:
@@ -99,12 +99,12 @@ class LinkCRUDL(SmartCRUDL):
         submit_button_name = _("Create")
 
         def get_form_kwargs(self):
-            kwargs = super(LinkCRUDL.Create, self).get_form_kwargs()
+            kwargs = super().get_form_kwargs()
             kwargs['user'] = self.request.user
             return kwargs
 
         def get_context_data(self, **kwargs):
-            context = super(LinkCRUDL.Create, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
             context['has_links'] = Link.objects.filter(org=self.request.user.get_org(), is_active=True).count() > 0
             return context
 
@@ -127,7 +127,7 @@ class LinkCRUDL(SmartCRUDL):
             return Link.objects.filter(is_active=True)
 
         def get_context_data(self, **kwargs):
-            context = super(LinkCRUDL.Read, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
             context['recent_start'] = datetime_to_ms(timezone.now() - timedelta(minutes=5))
             return context
 
@@ -150,7 +150,7 @@ class LinkCRUDL(SmartCRUDL):
             return Link.objects.filter(is_active=True)
 
         def get_context_data(self, *args, **kwargs):
-            context = super(LinkCRUDL.History, self).get_context_data(*args, **kwargs)
+            context = super().get_context_data(*args, **kwargs)
             link = self.get_object()
 
             link_creation = link.created_on - timedelta(hours=1)
@@ -201,7 +201,7 @@ class LinkCRUDL(SmartCRUDL):
         class LinkUpdateForm(BaseFlowForm):
 
             def __init__(self, user, *args, **kwargs):
-                super(LinkCRUDL.Update.LinkUpdateForm, self).__init__(*args, **kwargs)
+                super().__init__(*args, **kwargs)
                 self.user = user
 
             class Meta:
@@ -222,12 +222,12 @@ class LinkCRUDL(SmartCRUDL):
             return fields
 
         def get_form_kwargs(self):
-            kwargs = super(LinkCRUDL.Update, self).get_form_kwargs()
+            kwargs = super().get_form_kwargs()
             kwargs['user'] = self.request.user
             return kwargs
 
         def pre_save(self, obj):
-            obj = super(LinkCRUDL.Update, self).pre_save(obj)
+            obj = super().pre_save(obj)
             return obj
 
         def post_save(self, obj):
@@ -281,7 +281,7 @@ class LinkCRUDL(SmartCRUDL):
         search_fields = ('name__icontains',)
 
         def get_context_data(self, **kwargs):
-            context = super(LinkCRUDL.BaseList, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
             context['org_has_links'] = Link.objects.filter(org=self.request.user.get_org(), is_active=True).count()
             context['folders'] = self.get_folders()
             context['request_url'] = self.request.path
@@ -290,7 +290,7 @@ class LinkCRUDL(SmartCRUDL):
             return context
 
         def derive_queryset(self, *args, **kwargs):
-            qs = super(LinkCRUDL.BaseList, self).derive_queryset(*args, **kwargs)
+            qs = super().derive_queryset(*args, **kwargs)
             return qs.exclude(is_active=False)
 
         def get_folders(self):
@@ -309,14 +309,14 @@ class LinkCRUDL(SmartCRUDL):
         default_order = ('-created_on',)
 
         def derive_queryset(self, *args, **kwargs):
-            return super(LinkCRUDL.Archived, self).derive_queryset(*args, **kwargs).filter(is_active=True, is_archived=True)
+            return super().derive_queryset(*args, **kwargs).filter(is_active=True, is_archived=True)
 
     class List(BaseList):
         title = _("Trackable Links")
         actions = ('archive',)
 
         def derive_queryset(self, *args, **kwargs):
-            queryset = super(LinkCRUDL.List, self).derive_queryset(*args, **kwargs)
+            queryset = super().derive_queryset(*args, **kwargs)
             queryset = queryset.filter(is_active=True, is_archived=False)
             return queryset
 

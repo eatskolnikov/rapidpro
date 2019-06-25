@@ -40,7 +40,7 @@ from .templatetags.contacts import contact_field, activity_icon, history_class
 class ContactCRUDLTest(_CRUDLTest):
     def setUp(self):
         from temba.contacts.views import ContactCRUDL
-        super(ContactCRUDLTest, self).setUp()
+        super().setUp()
 
         self.country = AdminBoundary.objects.create(osm_id='171496', name='Rwanda', level=0)
         AdminBoundary.objects.create(osm_id='1708283', name='Kigali', level=1, parent=self.country)
@@ -205,7 +205,7 @@ class ContactCRUDLTest(_CRUDLTest):
 
 class ContactGroupTest(TembaTest):
     def setUp(self):
-        super(ContactGroupTest, self).setUp()
+        super().setUp()
 
         self.joe = Contact.get_or_create(self.org, self.admin, name="Joe Blow", urns=["tel:123"])
         self.frank = Contact.get_or_create(self.org, self.admin, name="Frank Smith", urns=["tel:1234"])
@@ -471,7 +471,7 @@ class ContactGroupTest(TembaTest):
 
 class ContactGroupCRUDLTest(TembaTest):
     def setUp(self):
-        super(ContactGroupCRUDLTest, self).setUp()
+        super().setUp()
 
         self.joe = Contact.get_or_create(self.org, self.user, name="Joe Blow", urns=["tel:123"])
         self.frank = Contact.get_or_create(self.org, self.user, name="Frank Smith", urns=["tel:1234"])
@@ -595,7 +595,7 @@ class ContactGroupCRUDLTest(TembaTest):
 
 class ContactTest(TembaTest):
     def setUp(self):
-        super(ContactTest, self).setUp()
+        super().setUp()
 
         self.user1 = self.create_user("nash")
 
@@ -3882,7 +3882,7 @@ class ContactTest(TembaTest):
 
 class ContactURNTest(TembaTest):
     def setUp(self):
-        super(ContactURNTest, self).setUp()
+        super().setUp()
 
     def test_create(self):
         urn = ContactURN.create(self.org, None, 'tel:1234')
@@ -3913,7 +3913,7 @@ class ContactURNTest(TembaTest):
 
 class ContactFieldTest(TembaTest):
     def setUp(self):
-        super(ContactFieldTest, self).setUp()
+        super().setUp()
 
         self.joe = self.create_contact(name="Joe Blow", number="123")
         self.frank = self.create_contact(name="Frank Smith", number="1234")

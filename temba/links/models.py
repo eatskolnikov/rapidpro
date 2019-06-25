@@ -28,7 +28,7 @@ MAX_HISTORY = 50
 
 class LinkException(Exception):
     def __init__(self, *args, **kwargs):
-        super(LinkException, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
 
 @six.python_2_unicode_compatible

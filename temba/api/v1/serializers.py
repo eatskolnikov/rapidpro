@@ -57,7 +57,7 @@ class StringArrayField(serializers.ListField):
     List of strings or a single string
     """
     def __init__(self, **kwargs):
-        super(StringArrayField, self).__init__(child=serializers.CharField(allow_blank=False), **kwargs)
+        super().__init__(child=serializers.CharField(allow_blank=False), **kwargs)
 
     def to_internal_value(self, data):
         # accept single string
@@ -69,13 +69,13 @@ class StringArrayField(serializers.ListField):
         elif isinstance(data, dict):
             raise serializers.ValidationError("Should be a list")
 
-        return super(StringArrayField, self).to_internal_value(data)
+        return super().to_internal_value(data)
 
 
 class StringDictField(serializers.DictField):
 
     def __init__(self, **kwargs):
-        super(StringDictField, self).__init__(child=serializers.CharField(), **kwargs)
+        super().__init__(child=serializers.CharField(), **kwargs)
 
     def to_internal_value(self, data):
         # enforce values must be strings, see https://github.com/tomchristie/django-rest-framework/pull/3394
@@ -84,7 +84,7 @@ class StringDictField(serializers.DictField):
                 if not isinstance(key, six.string_types) or not isinstance(val, six.string_types):
                     raise serializers.ValidationError("Both keys and values must be strings")
 
-        return super(StringDictField, self).to_internal_value(data)
+        return super().to_internal_value(data)
 
 
 class PhoneArrayField(serializers.ListField):
@@ -113,13 +113,13 @@ class PhoneArrayField(serializers.ListField):
 class ChannelField(serializers.PrimaryKeyRelatedField):
 
     def __init__(self, **kwargs):
-        super(ChannelField, self).__init__(queryset=Channel.objects.filter(is_active=True), **kwargs)
+        super().__init__(queryset=Channel.objects.filter(is_active=True), **kwargs)
 
 
 class UUIDField(serializers.CharField):
 
     def __init__(self, **kwargs):
-        super(UUIDField, self).__init__(max_length=36, **kwargs)
+        super().__init__(max_length=36, **kwargs)
 
 
 # ------------------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ class WriteSerializer(serializers.Serializer):
         self.user = kwargs.pop('user')
         self.org = kwargs.pop('org') if 'org' in kwargs else self.user.get_org()
 
-        super(WriteSerializer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.instance = None
 
@@ -150,7 +150,7 @@ class WriteSerializer(serializers.Serializer):
         if not isinstance(data, dict):
             raise serializers.ValidationError(detail={'non_field_errors': ["Request body should be a single JSON object"]})
 
-        return super(WriteSerializer, self).run_validation(data)
+        return super().run_validation(data)
 
 
 class ContactReadSerializer(ReadSerializer):
@@ -228,7 +228,7 @@ class ContactWriteSerializer(WriteSerializer):
     groups = StringArrayField(required=False)  # deprecated, use group_uuids
 
     def __init__(self, *args, **kwargs):
-        super(ContactWriteSerializer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.parsed_urns = None
         self.group_objs = None
         self.new_fields = []
@@ -584,7 +584,7 @@ class FlowRunWriteSerializer(WriteSerializer):
     version = serializers.IntegerField(required=False)  # for backwards compatibility
 
     def __init__(self, *args, **kwargs):
-        super(FlowRunWriteSerializer, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.contact_obj = None
         self.flow_obj = None
         self.submitted_by_obj = None

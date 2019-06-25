@@ -38,4 +38,4 @@ class ClaimView(AuthenticatedExternalClaimView):
                                                                passphrase=data['passphrase']),
                                                           role=Channel.ROLE_SEND + Channel.ROLE_RECEIVE)
 
-        return super(AuthenticatedExternalClaimView, self).form_valid(form)
+        return super().form_valid(form)

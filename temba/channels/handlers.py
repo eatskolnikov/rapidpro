@@ -59,7 +59,7 @@ class BaseChannelHandler(View):
 
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
-        return super(BaseChannelHandler, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     @classmethod
     def get_courier_url(cls):

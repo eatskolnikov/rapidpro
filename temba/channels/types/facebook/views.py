@@ -40,4 +40,4 @@ class ClaimView(ClaimViewMixin, SmartFormView):
         self.object = Channel.create(org, self.request.user, None, self.channel_type, name=page['name'],
                                      address=page['id'], config=config, secret=Channel.generate_secret())
 
-        return super(ClaimView, self).form_valid(form)
+        return super().form_valid(form)

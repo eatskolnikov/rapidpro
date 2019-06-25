@@ -34,7 +34,7 @@ from .serializers import MsgCreateSerializer
 class APITest(TembaTest):
 
     def setUp(self):
-        super(APITest, self).setUp()
+        super().setUp()
 
         self.joe = self.create_contact("Joe Blow", "0788123123")
 
@@ -51,7 +51,7 @@ class APITest(TembaTest):
         connection.settings_dict['ATOMIC_REQUESTS'] = False
 
     def tearDown(self):
-        super(APITest, self).tearDown()
+        super().tearDown()
 
         connection.settings_dict['ATOMIC_REQUESTS'] = True
 

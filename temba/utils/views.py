@@ -19,7 +19,7 @@ class BaseActionForm(forms.Form):
         org = kwargs.pop('org')
         self.user = kwargs.pop('user')
 
-        super(BaseActionForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         objects_qs = getattr(self.model, self.model_manager).filter(org=org)
         if self.has_is_active:

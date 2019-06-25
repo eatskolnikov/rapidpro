@@ -58,7 +58,7 @@ class ContactQLParser ( Parser ):
     ERROR=9
 
     def __init__(self, input, output=sys.stdout):
-        super(ContactQLParser, self).__init__(input, output=output)
+        super().__init__(input, output=output)
         self.checkVersion("4.7")
         self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
@@ -68,7 +68,7 @@ class ContactQLParser ( Parser ):
     class ParseContext(ParserRuleContext):
 
         def __init__(self, parser, parent=None, invokingState=-1):
-            super(ContactQLParser.ParseContext, self).__init__(parent, invokingState)
+            super().__init__(parent, invokingState)
             self.parser = parser
 
         def expression(self):
@@ -111,7 +111,7 @@ class ContactQLParser ( Parser ):
     class ExpressionContext(ParserRuleContext):
 
         def __init__(self, parser, parent=None, invokingState=-1):
-            super(ContactQLParser.ExpressionContext, self).__init__(parent, invokingState)
+            super().__init__(parent, invokingState)
             self.parser = parser
 
 
@@ -120,13 +120,13 @@ class ContactQLParser ( Parser ):
 
      
         def copyFrom(self, ctx):
-            super(ContactQLParser.ExpressionContext, self).copyFrom(ctx)
+            super().copyFrom(ctx)
 
 
     class ImplicitConditionContext(ExpressionContext):
 
         def __init__(self, parser, ctx): # actually a ContactQLParser.ExpressionContext)
-            super(ContactQLParser.ImplicitConditionContext, self).__init__(parser)
+            super().__init__(parser)
             self.copyFrom(ctx)
 
         def TEXT(self):
@@ -142,7 +142,7 @@ class ContactQLParser ( Parser ):
     class ConditionContext(ExpressionContext):
 
         def __init__(self, parser, ctx): # actually a ContactQLParser.ExpressionContext)
-            super(ContactQLParser.ConditionContext, self).__init__(parser)
+            super().__init__(parser)
             self.copyFrom(ctx)
 
         def TEXT(self):
@@ -163,7 +163,7 @@ class ContactQLParser ( Parser ):
     class CombinationAndContext(ExpressionContext):
 
         def __init__(self, parser, ctx): # actually a ContactQLParser.ExpressionContext)
-            super(ContactQLParser.CombinationAndContext, self).__init__(parser)
+            super().__init__(parser)
             self.copyFrom(ctx)
 
         def expression(self, i=None):
@@ -185,7 +185,7 @@ class ContactQLParser ( Parser ):
     class CombinationImpicitAndContext(ExpressionContext):
 
         def __init__(self, parser, ctx): # actually a ContactQLParser.ExpressionContext)
-            super(ContactQLParser.CombinationImpicitAndContext, self).__init__(parser)
+            super().__init__(parser)
             self.copyFrom(ctx)
 
         def expression(self, i=None):
@@ -205,7 +205,7 @@ class ContactQLParser ( Parser ):
     class CombinationOrContext(ExpressionContext):
 
         def __init__(self, parser, ctx): # actually a ContactQLParser.ExpressionContext)
-            super(ContactQLParser.CombinationOrContext, self).__init__(parser)
+            super().__init__(parser)
             self.copyFrom(ctx)
 
         def expression(self, i=None):
@@ -227,7 +227,7 @@ class ContactQLParser ( Parser ):
     class ExpressionGroupingContext(ExpressionContext):
 
         def __init__(self, parser, ctx): # actually a ContactQLParser.ExpressionContext)
-            super(ContactQLParser.ExpressionGroupingContext, self).__init__(parser)
+            super().__init__(parser)
             self.copyFrom(ctx)
 
         def LPAREN(self):
@@ -357,7 +357,7 @@ class ContactQLParser ( Parser ):
     class LiteralContext(ParserRuleContext):
 
         def __init__(self, parser, parent=None, invokingState=-1):
-            super(ContactQLParser.LiteralContext, self).__init__(parent, invokingState)
+            super().__init__(parent, invokingState)
             self.parser = parser
 
 
@@ -366,14 +366,14 @@ class ContactQLParser ( Parser ):
 
      
         def copyFrom(self, ctx):
-            super(ContactQLParser.LiteralContext, self).copyFrom(ctx)
+            super().copyFrom(ctx)
 
 
 
     class StringLiteralContext(LiteralContext):
 
         def __init__(self, parser, ctx): # actually a ContactQLParser.LiteralContext)
-            super(ContactQLParser.StringLiteralContext, self).__init__(parser)
+            super().__init__(parser)
             self.copyFrom(ctx)
 
         def STRING(self):
@@ -389,7 +389,7 @@ class ContactQLParser ( Parser ):
     class TextLiteralContext(LiteralContext):
 
         def __init__(self, parser, ctx): # actually a ContactQLParser.LiteralContext)
-            super(ContactQLParser.TextLiteralContext, self).__init__(parser)
+            super().__init__(parser)
             self.copyFrom(ctx)
 
         def TEXT(self):

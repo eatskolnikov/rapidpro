@@ -50,7 +50,7 @@ class Welcome(SmartTemplateView):
     template_name = 'public/public_welcome.haml'
 
     def get_context_data(self, **kwargs):
-        context = super(Welcome, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
 
         user = self.request.user
         org = user.get_org()
@@ -94,14 +94,14 @@ class VideoCRUDL(SmartCRUDL):
         permission = None
 
         def get_context_data(self, **kwargs):
-            context = super(VideoCRUDL.List, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
             return context
 
     class Read(SmartReadView):
         permission = None
 
         def get_context_data(self, **kwargs):
-            context = super(VideoCRUDL.Read, self).get_context_data(**kwargs)
+            context = super().get_context_data(**kwargs)
             context['videos'] = Video.objects.exclude(pk=self.get_object().pk).order_by('order')
             return context
 
@@ -118,7 +118,7 @@ class LeadCRUDL(SmartCRUDL):
 
         @csrf_exempt
         def dispatch(self, request, *args, **kwargs):
-            return super(LeadCRUDL.Create, self).dispatch(request, *args, **kwargs)
+            return super().dispatch(request, *args, **kwargs)
 
         def get_success_url(self):
             return reverse('orgs.org_signup') + "?%s" % urlencode({'email': self.form.cleaned_data['email']})
@@ -134,7 +134,7 @@ class LeadCRUDL(SmartCRUDL):
 
         def pre_save(self, obj):
             anon = get_anonymous_user()
-            obj = super(LeadCRUDL.Create, self).pre_save(obj)
+            obj = super().pre_save(obj)
             obj.created_by = anon
             obj.modified_by = anon
 

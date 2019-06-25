@@ -324,7 +324,7 @@ class IsSetCondition(Condition):
     IS_NOT_SET_LOOKUPS = ('is', '=')
 
     def __init__(self, prop, comparator):
-        super(IsSetCondition, self).__init__(prop, comparator, "")
+        super().__init__(prop, comparator, "")
 
     def as_query(self, org, prop_map, base_set):
         prop_type, prop_obj = prop_map[self.prop]
@@ -447,7 +447,7 @@ class SinglePropCombination(BoolCombination):
 
         self.prop = prop
 
-        super(SinglePropCombination, self).__init__(op, *children)
+        super().__init__(op, *children)
 
     def as_query(self, org, prop_map, base_set):
         prop_type, prop_obj = prop_map[self.prop] if self.prop != Condition.IMPLICIT_PROP else (None, None)
@@ -475,10 +475,10 @@ class SinglePropCombination(BoolCombination):
 
             return Q(id__in=value_contacts)
 
-        return super(SinglePropCombination, self).as_query(org, prop_map, base_set)
+        return super().as_query(org, prop_map, base_set)
 
     def __eq__(self, other):
-        return isinstance(other, SinglePropCombination) and self.prop == other.prop and super(SinglePropCombination, self).__eq__(other)
+        return isinstance(other, SinglePropCombination) and self.prop == other.prop and super().__eq__(other)
 
     def __str__(self):
         op = 'OR' if self.op == self.OR else 'AND'

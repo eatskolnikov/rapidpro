@@ -62,7 +62,7 @@ from .tasks import check_channels_task, squash_channelcounts, refresh_jiochat_ac
 class ChannelTest(TembaTest):
 
     def setUp(self):
-        super(ChannelTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
 
@@ -2257,7 +2257,7 @@ class ChannelCountTest(TembaTest):
 class AfricasTalkingTest(TembaTest):
 
     def setUp(self):
-        super(AfricasTalkingTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'KE', 'AT', None, '+250788123123',
@@ -2436,7 +2436,7 @@ class AfricasTalkingTest(TembaTest):
 class RedRabbitTest(TembaTest):
 
     def setUp(self):
-        super(RedRabbitTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'BR', 'RR', None, '+250788123123', schemes=['tel'],
@@ -2492,7 +2492,7 @@ class RedRabbitTest(TembaTest):
 class ExternalTest(TembaTest):
 
     def setUp(self):
-        super(ExternalTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'BR', 'EX', None, '+250788123123', schemes=['tel'],
@@ -2775,7 +2775,7 @@ class ExternalTest(TembaTest):
 
 class VerboiceTest(TembaTest):
     def setUp(self):
-        super(VerboiceTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'US', 'VB', None, '+250788123123',
@@ -2811,7 +2811,7 @@ class VerboiceTest(TembaTest):
 
 class YoTest(TembaTest):
     def setUp(self):
-        super(YoTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'BR', 'YO', None, '+250788123123',
@@ -2974,7 +2974,7 @@ class YoTest(TembaTest):
 class ShaqodoonTest(TembaTest):
 
     def setUp(self):
-        super(ShaqodoonTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'SO', 'SQ', None, '+250788123123',
@@ -3065,7 +3065,7 @@ class ShaqodoonTest(TembaTest):
 class M3TechTest(TembaTest):
 
     def setUp(self):
-        super(M3TechTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'PK', 'M3', None, '+250788123123',
@@ -3214,7 +3214,7 @@ class M3TechTest(TembaTest):
 class KannelTest(TembaTest):
 
     def setUp(self):
-        super(KannelTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'RW', 'KN', None, '+250788123123',
@@ -3456,7 +3456,7 @@ class KannelTest(TembaTest):
 class NexmoTest(TembaTest):
 
     def setUp(self):
-        super(NexmoTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'RW', 'NX', None, '+250788123123',
@@ -3693,7 +3693,7 @@ class NexmoTest(TembaTest):
 class VumiTest(TembaTest):
 
     def setUp(self):
-        super(VumiTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'RW', 'VM', None, '+250788123123',
@@ -3955,7 +3955,7 @@ class VumiTest(TembaTest):
 class ZenviaTest(TembaTest):
 
     def setUp(self):
-        super(ZenviaTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'BR', 'ZV', None, '+250788123123',
@@ -4095,7 +4095,7 @@ class ZenviaTest(TembaTest):
 class InfobipTest(TembaTest):
 
     def setUp(self):
-        super(InfobipTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'NG', 'IB', None, '+2347030767144',
@@ -4398,7 +4398,7 @@ class InfobipTest(TembaTest):
 class MacrokioskTest(TembaTest):
 
     def setUp(self):
-        super(MacrokioskTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         config = dict(username='mk-user', password='mk-password')
@@ -4649,7 +4649,7 @@ class MacrokioskTest(TembaTest):
 class BlackmynaTest(TembaTest):
 
     def setUp(self):
-        super(BlackmynaTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'NP', 'BM', None, '1212',
@@ -4802,7 +4802,7 @@ class BlackmynaTest(TembaTest):
 class SMSCentralTest(TembaTest):
 
     def setUp(self):
-        super(SMSCentralTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'NP', 'SC', None, '1212',
@@ -4915,7 +4915,7 @@ class SMSCentralTest(TembaTest):
 class Hub9Test(TembaTest):
 
     def setUp(self):
-        super(Hub9Test, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'ID', 'H9', None, '+6289881134567',
@@ -5039,7 +5039,7 @@ class Hub9Test(TembaTest):
 class DartMediaTest(TembaTest):
 
     def setUp(self):
-        super(DartMediaTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'ID', 'DA', None, '+6289881134567',
@@ -5205,7 +5205,7 @@ class DartMediaTest(TembaTest):
 class HighConnectionTest(TembaTest):
 
     def setUp(self):
-        super(HighConnectionTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'FR', 'HX', None, '5151',
@@ -5325,7 +5325,7 @@ class HighConnectionTest(TembaTest):
 class TwilioTest(TembaTest):
 
     def setUp(self):
-        super(TwilioTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'RW', 'T', None, '+250785551212',
@@ -5801,7 +5801,7 @@ class TwilioTest(TembaTest):
 class TwilioMessagingServiceTest(TembaTest):
 
     def setUp(self):
-        super(TwilioMessagingServiceTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'US', 'TMS', None, None,
@@ -5861,7 +5861,7 @@ class TwilioMessagingServiceTest(TembaTest):
 class ClickatellTest(TembaTest):
 
     def setUp(self):
-        super(ClickatellTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'RW', 'CT', None, '+250788123123',
@@ -6175,7 +6175,7 @@ class ClickatellTest(TembaTest):
 class TelegramTest(TembaTest):
 
     def setUp(self):
-        super(TelegramTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
 
@@ -6721,7 +6721,7 @@ class TelegramTest(TembaTest):
 class PlivoTest(TembaTest):
 
     def setUp(self):
-        super(PlivoTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'RW', 'PL', None, '+250788123123',
@@ -6873,7 +6873,7 @@ class PlivoTest(TembaTest):
 class TwitterTest(TembaTest):
 
     def setUp(self):
-        super(TwitterTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
 
@@ -7211,7 +7211,7 @@ class TwitterTest(TembaTest):
 class MageHandlerTest(TembaTest):
 
     def setUp(self):
-        super(MageHandlerTest, self).setUp()
+        super().setUp()
 
         self.org.webhook = u'{"url": "http://fake.com/webhook.php"}'
         self.org.webhook_events = ALL_EVENTS
@@ -7423,7 +7423,7 @@ class MageHandlerTest(TembaTest):
 class StartMobileTest(TembaTest):
 
     def setUp(self):
-        super(StartMobileTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'UA', 'ST', None, '1212',
@@ -7592,7 +7592,7 @@ class StartMobileTest(TembaTest):
 class ChikkaTest(TembaTest):
 
     def setUp(self):
-        super(ChikkaTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'PH', 'CK', None, '920920',
@@ -7818,7 +7818,7 @@ class ChikkaTest(TembaTest):
 class JasminTest(TembaTest):
 
     def setUp(self):
-        super(JasminTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'RW', 'JS', None, '1234',
@@ -7826,7 +7826,7 @@ class JasminTest(TembaTest):
                                       uuid='00000000-0000-0000-0000-000000001234')
 
     def tearDown(self):
-        super(JasminTest, self).tearDown()
+        super().tearDown()
 
     def test_status(self):
         # ok, what happens with an invalid uuid?
@@ -7997,7 +7997,7 @@ class JunebugTestMixin(object):
 class JunebugTest(JunebugTestMixin, TembaTest):
 
     def setUp(self):
-        super(JunebugTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
 
@@ -8008,7 +8008,7 @@ class JunebugTest(JunebugTestMixin, TembaTest):
             role=Channel.DEFAULT_ROLE)
 
     def tearDown(self):
-        super(JunebugTest, self).tearDown()
+        super().tearDown()
 
     def test_get_request(self):
         response = self.client.get(
@@ -8307,7 +8307,7 @@ class JunebugTest(JunebugTestMixin, TembaTest):
 class MbloxTest(TembaTest):
 
     def setUp(self):
-        super(MbloxTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'RW', 'MB', None, '1234',
@@ -8315,7 +8315,7 @@ class MbloxTest(TembaTest):
                                       uuid='00000000-0000-0000-0000-000000001234')
 
     def tearDown(self):
-        super(MbloxTest, self).tearDown()
+        super().tearDown()
 
     def test_dlr(self):
         # invalid uuid
@@ -8457,7 +8457,7 @@ class MbloxTest(TembaTest):
 class FacebookWhitelistTest(TembaTest):
 
     def setUp(self):
-        super(FacebookWhitelistTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, None, 'FB', None, '1234',
@@ -8516,7 +8516,7 @@ class FacebookTest(TembaTest):
     """
 
     def setUp(self):
-        super(FacebookTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, None, 'FB', None, '1234',
@@ -8524,7 +8524,7 @@ class FacebookTest(TembaTest):
                                       uuid='00000000-0000-0000-0000-000000001234')
 
     def tearDown(self):
-        super(FacebookTest, self).tearDown()
+        super().tearDown()
 
     def test_dlr(self):
         # invalid uuid
@@ -9225,7 +9225,7 @@ class FacebookTest(TembaTest):
 class JiochatTest(TembaTest):
 
     def setUp(self):
-        super(JiochatTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, None, 'JC', None, '1212',
@@ -9564,7 +9564,7 @@ class JiochatTest(TembaTest):
 class GlobeTest(TembaTest):
 
     def setUp(self):
-        super(GlobeTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, 'PH', 'GL', None, '21586380',
@@ -9733,7 +9733,7 @@ class GlobeTest(TembaTest):
 class ViberTest(TembaTest):
 
     def setUp(self):
-        super(ViberTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, None, Channel.TYPE_VIBER, None, '1001',
@@ -9899,7 +9899,7 @@ class ViberTest(TembaTest):
 class LineTest(TembaTest):
 
     def setUp(self):
-        super(LineTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, None, 'LN', '123456789', '123456789',
@@ -10041,7 +10041,7 @@ class LineTest(TembaTest):
 class ViberPublicTest(TembaTest):
 
     def setUp(self):
-        super(ViberPublicTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, None, 'VP', None, '1001',
@@ -10425,7 +10425,7 @@ class ViberPublicTest(TembaTest):
 class FcmTest(TembaTest):
 
     def setUp(self):
-        super(FcmTest, self).setUp()
+        super().setUp()
 
         self.channel.delete()
         self.channel = Channel.create(self.org, self.user, None, 'FCM', 'FCM Channel', 'fcm-channel',
