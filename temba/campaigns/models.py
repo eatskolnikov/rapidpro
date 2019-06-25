@@ -17,7 +17,6 @@ from temba.utils.models import TembaModel, TranslatableField
 from temba.values.models import Value
 
 
-@six.python_2_unicode_compatible
 class Campaign(TembaModel):
     MAX_NAME_LEN = 255
 
@@ -232,7 +231,6 @@ class Campaign(TembaModel):
         return self.name
 
 
-@six.python_2_unicode_compatible
 class CampaignEvent(TembaModel):
     """
     An event within a campaign that can send a message to a contact or start them in a flow
@@ -446,7 +444,6 @@ class CampaignEvent(TembaModel):
         return "%s == %d -> %s" % (self.relative_to, self.offset, self.flow)
 
 
-@six.python_2_unicode_compatible
 class EventFire(Model):
     event = models.ForeignKey('campaigns.CampaignEvent', related_name="event_fires",
                               help_text="The event that will be fired",

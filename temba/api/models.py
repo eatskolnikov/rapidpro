@@ -575,6 +575,12 @@ class WebHookEvent(SmartModel):
 
         return result
 
+    def release(self):
+        for result in self.results.all():
+            result.release()
+
+        self.delete()
+
     def __str__(self):  # pragma: needs cover
         return "WebHookEvent[%s:%d] %s" % (self.event, self.pk, self.data)
 
@@ -635,6 +641,9 @@ class WebHookResult(SmartModel):
     @property
     def is_success(self):
         return 200 <= self.status_code < 300
+
+    def release(self):
+        self.delete()
 
 
 @six.python_2_unicode_compatible

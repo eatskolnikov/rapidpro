@@ -10,7 +10,7 @@ from django.contrib.auth.models import Group
 from django.urls import reverse
 from django.test import override_settings
 from django.utils import timezone
-from mock import patch
+from unittest.mock import patch
 from temba.api.models import APIToken, WebHookEvent, WebHookResult
 from temba.api.tasks import trim_webhook_event_task
 from temba.channels.models import ChannelEvent, SyncEvent
@@ -418,8 +418,8 @@ class WebHookTest(TembaTest):
             self.assertFalse(mock.called)
 
             # what if they send weird json back?
-            WebHookEvent.objects.all().delete()
-            WebHookResult.objects.all().delete()
+            self.release(WebHookEvent.objects.all())
+            self.release(WebHookResult.objects.all())
 
         # add ad manager back in
         self.org.administrators.add(self.admin)
@@ -443,8 +443,8 @@ class WebHookTest(TembaTest):
 
             self.assertTrue(mock.called)
 
-            WebHookEvent.objects.all().delete()
-            WebHookResult.objects.all().delete()
+            self.release(WebHookEvent.objects.all())
+            self.release(WebHookResult.objects.all())
 
         with patch('requests.Session.send') as mock:
             mock.side_effect = [MockResponse(500, "I am error")]
@@ -468,8 +468,8 @@ class WebHookTest(TembaTest):
             self.assertTrue(mock.called)
             self.assertEqual(mock.call_count, 2)
 
-            WebHookEvent.objects.all().delete()
-            WebHookResult.objects.all().delete()
+            self.release(WebHookEvent.objects.all())
+            self.release(WebHookResult.objects.all())
 
         with patch('requests.Session.send') as mock:
             # valid json, but not our format
@@ -491,8 +491,8 @@ class WebHookTest(TembaTest):
             self.assertEqual(200, result.status_code)
             self.assertEqual(bad_json, result.body)
 
-            WebHookEvent.objects.all().delete()
-            WebHookResult.objects.all().delete()
+            self.release(WebHookEvent.objects.all())
+            self.release(WebHookResult.objects.all())
 
         with patch('requests.Session.send') as mock:
             mock.return_value = MockResponse(200, '{ "phone": "+250788123123", "text": "I am success" }')
@@ -530,8 +530,8 @@ class WebHookTest(TembaTest):
             self.assertEqual("I'm gonna pop some tags", data['text'][0])
             self.assertTrue('time' in data)
 
-            WebHookEvent.objects.all().delete()
-            WebHookResult.objects.all().delete()
+            self.release(WebHookEvent.objects.all())
+            self.release(WebHookResult.objects.all())
 
         with patch('requests.Session.send') as mock:
             mock.return_value = MockResponse(500, "I am error")
@@ -577,8 +577,8 @@ class WebHookTest(TembaTest):
             response = self.client.get(reverse('api.log_read', args=[event.pk]))
             self.assertRedirect(response, reverse('users.user_login'))
 
-            WebHookEvent.objects.all().delete()
-            WebHookResult.objects.all().delete()
+            self.release(WebHookEvent.objects.all())
+            self.release(WebHookResult.objects.all())
 
         # add a webhook header to the org
         self.channel.org.webhook = u'{"url": "http://fake.com/webhook.php", "headers": {"X-My-Header": "foobar", "Authorization": "Authorization: Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="}, "method": "POST"}'
