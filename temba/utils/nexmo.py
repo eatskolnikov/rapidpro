@@ -1,6 +1,3 @@
-from __future__ import absolute_import, print_function, unicode_literals
-
-import json
 import time
 import uuid
 
@@ -9,9 +6,11 @@ import requests
 import nexmo as nx
 import six
 
-from temba.utils.gsm7 import is_gsm7
 from django.utils.http import urlencode
+from django.utils.encoding import force_bytes
 
+from temba.utils.gsm7 import is_gsm7
+from temba.utils import json
 from temba.utils.http import HttpEvent
 
 
@@ -30,7 +29,7 @@ class NexmoClient(nx.Client):
         kwargs['key'] = api_key.strip()
         kwargs['secret'] = api_secret.strip()
         kwargs['application_id'] = app_id.strip()
-        kwargs['private_key'] = app_private_key.strip()
+        kwargs['private_key'] = app_private_key
         nx.Client.__init__(self, **kwargs)
 
     def update_account(self, mo_url, dr_url):  # pragma: needs cover
@@ -152,7 +151,7 @@ class NexmoClient(nx.Client):
 
         token = jwt.encode(payload, self.private_key, algorithm='RS256')
 
-        return dict(self.headers, Authorization=b'Bearer ' + token)
+        return dict(self.headers, Authorization=b"Bearer " + force_bytes(token))
 
 
 def __main__():  # pragma: no cover

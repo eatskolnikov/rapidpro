@@ -28,26 +28,17 @@ class LineTypeTest(TembaTest):
 
         mock_get.return_value = MockResponse(200, json.dumps({'channelId': 123456789, 'mid': 'u1234567890'}))
 
-        payload = {'access_token': 'abcdef123456', 'secret': '123456'}
+        payload = {"access_token": "abcdef123456", "secret": "123456", "channel_id": "123456789", "name": "Temba"}
 
         response = self.client.post(url, payload, follow=True)
 
-        channel = Channel.objects.get(address='u1234567890')
+        channel = Channel.objects.get(address='123456789')
         self.assertRedirects(response, reverse('channels.channel_configuration', args=[channel.id]))
         self.assertEqual(channel.config_json(), {
             'auth_token': 'abcdef123456',
-            'channel_secret': '123456',
-            'channel_id': 123456789,
-            'channel_mid': 'u1234567890'
+            'secret': '123456',
+            'channel_id': '123456789'
         })
 
         response = self.client.post(url, payload, follow=True)
         self.assertContains(response, "A channel with this configuration already exists.")
-
-        self.org.channels.update(is_active=False, org=None)
-
-        mock_get.return_value = MockResponse(401, json.dumps(dict(error_desciption="invalid token")))
-        payload = {'access_token': 'abcdef123456', 'secret': '123456'}
-
-        response = self.client.post(url, payload, follow=True)
-        self.assertContains(response, "invalid token")

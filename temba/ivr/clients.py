@@ -56,6 +56,9 @@ class NexmoClient(NexmoCli):
             raise ServerError(message)
 
     def start_call(self, call, to, from_, status_callback):
+        if not settings.SEND_CALLS:
+            raise ValueError("SEND_CALLS set to False, skipping call start")
+
         url = 'https://%s%s' % (self.org.get_brand_domain(), reverse('ivr.ivrcall_handle', args=[call.pk]))
 
         params = dict()
@@ -75,12 +78,12 @@ class NexmoClient(NexmoCli):
                 ChannelLog.log_ivr_interaction(call, 'Started call', event)
 
         except Exception as e:
-            event = HttpEvent('POST', 'https://api.nexmo.com/v1/calls', json.dumps(params), response_body=six.text_type(e))
+            event = HttpEvent('POST', 'https://api.nexmo.com/v1/calls', json.dumps(params), response_body=str(e))
             ChannelLog.log_ivr_interaction(call, 'Call start failed', event, is_error=True)
 
             call.status = IVRCall.FAILED
             call.save()
-            raise IVRException(_("Nexmo call failed, with error %s") % six.text_type(e.message))
+            raise IVRException(_("Nexmo call failed, with error %s") % str(e))
 
     def download_media(self, call, media_url):
         """

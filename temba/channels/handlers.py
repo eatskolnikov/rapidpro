@@ -1221,6 +1221,9 @@ class NexmoCallHandler(BaseChannelHandler):
     handler_url = r'^nexmo/(?P<action>answer|event)/(?P<uuid>[a-z0-9\-]+)/$'
     handler_name = 'handlers.nexmo_call_handler'
 
+    courier_name = 'courier.nx'
+    courier_url = r"^nx/(?P<uuid>[a-z0-9\-]+)/(?P<action>status|receive)$"
+
     def post(self, request, *args, **kwargs):
         return self.get(request, *args, **kwargs)
 

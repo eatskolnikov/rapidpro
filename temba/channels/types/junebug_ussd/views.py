@@ -42,4 +42,4 @@ class ClaimView(AuthenticatedExternalClaimView):
             self.object.secret = data['secret']
             self.object.save()
 
-        return super().form_valid(form)
+        return super(AuthenticatedExternalClaimView, self).form_valid(form)

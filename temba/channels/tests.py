@@ -1,6 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals
-
 import base64
 import calendar
 import copy
@@ -12,7 +9,6 @@ import iso8601
 import pytz
 import six
 import time
-import urllib2
 import uuid
 
 from datetime import timedelta, date, datetime
@@ -50,7 +46,7 @@ from temba.utils.queues import push_task
 from twilio import TwilioRestException
 from twilio.util import RequestValidator
 from twython import TwythonError
-from urllib import urlencode
+import urllib.parse as urlparse
 from xml.etree import ElementTree as ET
 
 
@@ -571,7 +567,7 @@ class ChannelTest(TembaTest):
             signature = hmac.new(key=key, msg=bytes(post_data), digestmod=hashlib.sha256).digest()
 
             # base64 and url sanitize
-            signature = urllib2.quote(base64.urlsafe_b64encode(signature))
+            signature = urlparse.quote(base64.urlsafe_b64encode(signature))
 
         return self.client.post("%s?signature=%s&ts=%d" % (reverse('sync', args=[channel.pk]), signature, ts),
                                 content_type='application/json', data=post_data)
@@ -4417,14 +4413,14 @@ class MacrokioskTest(TembaTest):
         data = {'shortcode': '1212', 'from': '+9771488532', 'text': 'Hello World', 'msgid': 'abc1234',
                 'time': msg_date}
 
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.macrokiosk_handler',
                                args=['receive', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, "-1")
+        self.assertContains(response, "-1")
 
         # load our message
         msg = Msg.objects.get()
@@ -4446,14 +4442,14 @@ class MacrokioskTest(TembaTest):
         data = {'longcode': '1212', 'msisdn': '+9771488532', 'text': 'Hello World', 'msgid': 'abc1234',
                 'time': datetime_to_str(two_hour_ago, format="%Y-%m-%d%H:%M:%S")}
 
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.macrokiosk_handler',
                                args=['receive', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, "-1")
+        self.assertContains(response, "-1")
 
         # load our message
         msg = Msg.objects.get()
@@ -4468,7 +4464,7 @@ class MacrokioskTest(TembaTest):
         data = {'shortcode': '1212', 'msisdn': '+9771488532', 'text': 'Hello World', 'msgid': 'abc1234',
                 'time': datetime_to_str(two_hour_ago, format="%Y-%m-%d%H:%M:%S")}
 
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.macrokiosk_handler', args=['receive', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -4479,7 +4475,7 @@ class MacrokioskTest(TembaTest):
         data = {'longcode': '1212', 'from': '+9771488532', 'text': 'Hello World', 'msgid': 'abc1234',
                 'time': datetime_to_str(two_hour_ago, format="%Y-%m-%d%H:%M:%S")}
 
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.macrokiosk_handler', args=['receive', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -4490,7 +4486,7 @@ class MacrokioskTest(TembaTest):
         # try missing param
         data = {'from': '+9771488532', 'text': 'Hello World', 'msgid': 'abc1234',
                 'time': datetime_to_str(two_hour_ago, format="%Y-%m-%d%H:%M:%S")}
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.macrokiosk_handler', args=['receive', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -4500,7 +4496,7 @@ class MacrokioskTest(TembaTest):
 
         # try it with an invalid receiver, should fail as UUID and receiver id are mismatched
         data['shortcode'] = '1515'
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.macrokiosk_handler', args=['receive', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -4658,7 +4654,7 @@ class BlackmynaTest(TembaTest):
 
     def test_received(self):
         data = {'to': '1212', 'from': '+9771488532', 'text': 'Hello World', 'smsc': 'NTNepal5002'}
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.blackmyna_handler', args=['receive', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -4675,7 +4671,7 @@ class BlackmynaTest(TembaTest):
 
         # try it with an invalid receiver, should fail as UUID and receiver id are mismatched
         data['to'] = '1515'
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.blackmyna_handler', args=['receive', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -4811,7 +4807,7 @@ class SMSCentralTest(TembaTest):
 
     def test_received(self):
         data = {'mobile': '+9771488532', 'message': 'Hello World', 'telco': 'Ncell'}
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.smscentral_handler', args=['receive', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -4933,7 +4929,7 @@ class Hub9Test(TembaTest):
             'sendto': '6289881134567',
             'message': 'Hello World'
         }
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.hub9_handler', args=['received', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -4950,7 +4946,7 @@ class Hub9Test(TembaTest):
 
         # try it with an invalid receiver, should fail as UUID and receiver id are mismatched
         data['sendto'] = '6289881131111'
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.hub9_handler', args=['received', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -4966,7 +4962,7 @@ class Hub9Test(TembaTest):
             'sendto': '6289881134567',
             'message': 'Hello Jakarta'
         }
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.hub9_handler', args=['received', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -5057,7 +5053,7 @@ class DartMediaTest(TembaTest):
             'sendto': '6289881134567',
             'message': 'Hello World'
         }
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.dartmedia_handler', args=['received', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -5074,7 +5070,7 @@ class DartMediaTest(TembaTest):
 
         # try it with an invalid receiver, should fail as UUID and receiver id are mismatched
         data['sendto'] = '6289881131111'
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.dartmedia_handler', args=['received', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -5090,7 +5086,7 @@ class DartMediaTest(TembaTest):
             'sendto': '6289881134567',
             'message': 'Hello Jakarta'
         }
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.dartmedia_handler', args=['received', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -5117,12 +5113,12 @@ class DartMediaTest(TembaTest):
             'message': 'Hello Indonesia'
         }
 
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
         callback_url = reverse('handlers.dartmedia_handler', args=['received', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
 
         self.assertEqual(401, response.status_code)
-        self.assertEqual(response.content, "Parameters message, original and sendto should not be null.")
+        self.assertContains(response, "Parameters message, original and sendto should not be null.")
 
         # all needed params
         data = {
@@ -5133,7 +5129,7 @@ class DartMediaTest(TembaTest):
             'message': 'Hello Indonesia'
         }
 
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
         callback_url = reverse('handlers.dartmedia_handler', args=['received', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
 
@@ -5246,7 +5242,7 @@ class HighConnectionTest(TembaTest):
 
         # now update the status via a callback
         data = {'ret_id': msg.id, 'status': '6'}
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.hcnx_handler', args=['status', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -5877,7 +5873,7 @@ class ClickatellTest(TembaTest):
                 'timestamp': '2012-10-10 10:10:10',
                 'moMsgId': 'id1234'}
 
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
         encoded_message += "&text=%00m%00e%00x%00i%00c%00o%00+%00k%00+%00m%00i%00s%00+%00p%00a%00p%00a%00s%00+%00n%00o%00+%00t%00e%00n%00%ED%00a%00+%00d%00i%00n%00e%00r%00o%00+%00p%00a%00r%00a%00+%00c%00o%00m%00p%00r%00a%00r%00n%00o%00s%00+%00l%00o%00+%00q%00+%00q%00u%00e%00r%00%ED%00a%00m%00o%00s%00.%00."
         encoded_message += "&charset=UTF-16BE"
         receive_url = reverse('handlers.clickatell_handler', args=['receive', self.channel.uuid]) + '?' + encoded_message
@@ -5905,7 +5901,7 @@ class ClickatellTest(TembaTest):
                 'timestamp': '2012-10-10 10:10:10',
                 'moMsgId': 'id1234'}
 
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
         encoded_message += "&text=%05%EF%BF%BD%EF%BF%BD%034%02%41i+mapfumbamwe+vana+4+kuwacha+handingapedze+izvozvo+ndozvikukonzera+kt+varoorwe+varipwere+ngapaonekwe+ipapo+ndatenda."
         encoded_message += "&charset=ISO-8859-1"
         receive_url = reverse('handlers.clickatell_handler', args=['receive', self.channel.uuid]) + '?' + encoded_message
@@ -5926,7 +5922,7 @@ class ClickatellTest(TembaTest):
 
         Msg.objects.all().delete()
 
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
         encoded_message += "&text=Artwell+S%ECbbnda"
         encoded_message += "&charset=ISO-8859-1"
         receive_url = reverse('handlers.clickatell_handler', args=['receive', self.channel.uuid]) + '?' + encoded_message
@@ -5946,7 +5942,7 @@ class ClickatellTest(TembaTest):
 
         Msg.objects.all().delete()
 
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
         encoded_message += "&text=a%3F+%A3irvine+stinta%3F%A5.++"
         encoded_message += "&charset=ISO-8859-1"
         receive_url = reverse('handlers.clickatell_handler', args=['receive', self.channel.uuid]) + '?' + encoded_message
@@ -5968,7 +5964,7 @@ class ClickatellTest(TembaTest):
 
         data['text'] = 'when? or What? is this '
 
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
         encoded_message += "&charset=ISO-8859-1"
         receive_url = reverse('handlers.clickatell_handler', args=['receive', self.channel.uuid]) + '?' + encoded_message
 
@@ -5995,7 +5991,7 @@ class ClickatellTest(TembaTest):
                 'timestamp': '2012-10-10 10:10:10',
                 'moMsgId': 'id1234'}
 
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
         receive_url = reverse('handlers.clickatell_handler', args=['receive', self.channel.uuid]) + '?' + encoded_message
 
         response = self.client.get(receive_url)
@@ -6025,7 +6021,7 @@ class ClickatellTest(TembaTest):
         msg.save(update_fields=('external_id',))
 
         data = {'apiMsgId': 'id1234', 'status': '001'}
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.clickatell_handler', args=['status', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -6044,7 +6040,7 @@ class ClickatellTest(TembaTest):
 
         # and do it again with a received state
         data = {'apiMsgId': 'id1234', 'status': '004'}
-        encoded_message = urlencode(data)
+        encoded_message = urlparse.urlencode(data)
 
         callback_url = reverse('handlers.clickatell_handler', args=['status', self.channel.uuid]) + "?" + encoded_message
         response = self.client.get(callback_url)
@@ -7873,7 +7869,7 @@ class JasminTest(TembaTest):
         response = self.client.post(callback_url, data)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, "ACK/Jasmin")
+        self.assertContains(response, "ACK/Jasmin")
 
         # load our message
         msg = Msg.objects.get()
@@ -8074,10 +8070,7 @@ class JunebugTest(JunebugTestMixin, TembaTest):
             data=json.dumps(data),
             content_type='application/json')
         self.assertEqual(400, response.status_code)
-        self.assertEqual(
-            response.content,
-            "Message with external id of '%s' not found" % (
-                data['message_id'],))
+        self.assertContains(response, "Message with external id of '%s' not found" % data['message_id'])
 
     def test_status_with_auth(self):
         self.channel.secret = "UjOq8ATo2PDS6L08t6vlqSoK"
@@ -8354,7 +8347,7 @@ class MbloxTest(TembaTest):
             data['status'] = status
             response = self.client.post(delivery_url, json.dumps(data), content_type="application/json")
             self.assertEqual(200, response.status_code)
-            self.assertEqual(response.content, "SMS Updated: %d" % msg.id)
+            self.assertContains(response, "SMS Updated: %d" % msg.id)
             msg = Msg.objects.get(pk=msg.id)
             self.assertEqual(assert_status, msg.status)
 
@@ -8380,7 +8373,7 @@ class MbloxTest(TembaTest):
         msg = Msg.objects.get()
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, "SMS Accepted: %d" % msg.id)
+        self.assertContains(response, "SMS Accepted: %d" % msg.id)
 
         # load our message
         self.assertEqual(msg.contact.get_urn(TEL_SCHEME).path, "+12067799294")
@@ -8728,7 +8721,7 @@ class FacebookTest(TembaTest):
         data['entry'][0]['messaging'][0] = json.loads(optin)
         response = self.client.post(callback_url, json.dumps(data), content_type='application/json')
         self.assertEqual(200, response.status_code)
-        self.assertEqual('Msg Ignored for recipient id: PAGE_ID', response.content)
+        self.assertContains('Msg Ignored for recipient id: PAGE_ID', response)
 
         response = self.client.post(callback_url, json.dumps(data).replace('PAGE_ID', '1234'), content_type='application/json')
         self.assertEqual(200, response.status_code)
@@ -8800,7 +8793,7 @@ class FacebookTest(TembaTest):
         data['entry'][0]['messaging'][0] = json.loads(referral)
         response = self.client.post(callback_url, json.dumps(data), content_type='application/json')
         self.assertEqual(200, response.status_code)
-        self.assertEqual('Msg Ignored for recipient id: PAGE_ID', response.content)
+        self.assertContains('Msg Ignored for recipient id: PAGE_ID', response)
 
         response = self.client.post(callback_url, json.dumps(data).replace('PAGE_ID', '1234'), content_type='application/json')
         self.assertEqual(200, response.status_code)
@@ -9291,7 +9284,7 @@ class JiochatTest(TembaTest):
                                    "?signature=%s&timestamp=%s&nonce=%s&echostr=SUCCESS" % (signature, timestamp,
                                                                                             nonce))
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, 'SUCCESS')
+        self.assertContains(response, 'SUCCESS')
         self.assertTrue(mock_refresh_access_token.called)
 
         mock_refresh_access_token.reset_mock()
@@ -9628,7 +9621,7 @@ class GlobeTest(TembaTest):
 
         msg = Msg.objects.get()
         self.assertEqual(msg.channel, self.channel)
-        self.assertEqual(response.content, "Msgs Accepted: %d" % msg.id)
+        self.assertContains(response, "Msgs Accepted: %d" % msg.id)
         Msg.objects.all().delete()
 
         # another valid post on the right address
@@ -9636,7 +9629,7 @@ class GlobeTest(TembaTest):
         self.assertEqual(response.status_code, 200)
 
         msg = Msg.objects.get()
-        self.assertEqual(response.content, "Msgs Accepted: %d" % msg.id)
+        self.assertContains(response, "Msgs Accepted: %d" % msg.id)
 
         # load our message
         self.assertEqual(msg.contact.get_urn(TEL_SCHEME).path, "+639171234567")
@@ -9810,7 +9803,7 @@ class ViberTest(TembaTest):
         self.assertEqual(response.status_code, 200)
 
         msg = Msg.objects.get()
-        self.assertEqual(response.content, "Msg Accepted: %d" % msg.id)
+        self.assertContains(response, "Msg Accepted: %d" % msg.id)
 
         # load our message
         self.assertEqual(msg.contact.get_urn(TEL_SCHEME).path, "+972512222222")

@@ -3,7 +3,7 @@ from __future__ import unicode_literals, absolute_import
 import json
 
 from django.urls import reverse
-from mock import patch
+from unittest.mock import patch
 
 from temba.channels.models import Channel
 from temba.tests import TembaTest, MockResponse
@@ -19,7 +19,7 @@ class NexmoTypeTest(TembaTest):
         claim_nexmo = reverse('channels.claim_nexmo')
 
         # remove any existing channels
-        self.org.channels.update(is_active=False, org=None)
+        self.org.channels.update(is_active=False)
 
         # make sure nexmo is on the claim page
         response = self.client.get(reverse('channels.channel_claim'))
@@ -31,7 +31,7 @@ class NexmoTypeTest(TembaTest):
         self.assertEqual(response.request['PATH_INFO'], reverse('orgs.org_nexmo_connect'))
 
         nexmo_config = dict(NEXMO_KEY='nexmo-key', NEXMO_SECRET='nexmo-secret', NEXMO_UUID='nexmo-uuid',
-                            NEXMO_APP_ID='nexmo-app-id', NEXMO_APP_PRIVATE_KEY='nexmo-app-private-key')
+                            NEXMO_APP_ID='nexmo-app-id', NEXMO_APP_PRIVATE_KEY='nexmo-app-private-key\n')
         self.org.config = json.dumps(nexmo_config)
         self.org.save()
 
