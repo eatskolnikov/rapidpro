@@ -65,17 +65,18 @@ class ClaimView(BaseClaimNumberMixin, SmartFormView):
 
     def get_existing_numbers(self, org):
         client = org.get_nexmo_client()
+        numbers = []
+
         if client:
             account_numbers = client.get_numbers(size=100)
 
-        numbers = []
-        for number in account_numbers:
-            if number['type'] == 'mobile-shortcode':  # pragma: needs cover
-                phone_number = number['msisdn']
-            else:
-                parsed = phonenumbers.parse(number['msisdn'], number['country'])
-                phone_number = phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
-            numbers.append(dict(number=phone_number, country=number['country']))
+            for number in account_numbers:
+                if number['type'] == 'mobile-shortcode':  # pragma: needs cover
+                    phone_number = number['msisdn']
+                else:
+                    parsed = phonenumbers.parse(number['msisdn'], number['country'])
+                    phone_number = phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
+                numbers.append(dict(number=phone_number, country=number['country']))
 
         return numbers
 

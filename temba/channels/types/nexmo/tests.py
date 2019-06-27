@@ -1,5 +1,3 @@
-from __future__ import unicode_literals, absolute_import
-
 import json
 
 from django.urls import reverse
@@ -196,4 +194,4 @@ class NexmoTypeTest(TembaTest):
                 response = self.client.get(call_handler_event_url)
 
                 self.assertEqual(response.status_code, 200)
-                self.assertEqual(response.content, "")
+                self.assertContains(response, "")
