@@ -1245,7 +1245,7 @@ class Flow(TembaModel):
                 remap_uuid(rule, 'destination')
 
         # now update with our remapped values
-        self.update(flow_json)
+        # self.update(flow_json) ## TODO - check
         return self
 
     def set_metadata_json(self, metadata):
