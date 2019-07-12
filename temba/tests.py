@@ -2,7 +2,6 @@
 from __future__ import absolute_import, print_function, unicode_literals
 
 import inspect
-import json
 import os
 import pytz
 import regex
@@ -15,7 +14,7 @@ import time
 from cgi import parse_header, parse_multipart
 from datetime import datetime, timedelta
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from django.urls import reverse
 from django.db import connection
 from django.test import LiveServerTestCase
@@ -33,10 +32,10 @@ from temba.locations.models import AdminBoundary
 from temba.flows.models import Flow, ActionSet, RuleSet, FlowStep
 from temba.ivr.clients import TwilioClient
 from temba.msgs.models import Msg, INCOMING
-from temba.utils import dict_to_struct, get_anonymous_user
+from temba.utils import dict_to_struct, get_anonymous_user, json
 from temba.values.models import Value
 from threading import Thread
-from twilio.util import RequestValidator
+from twilio.request_validator import RequestValidator
 from uuid import uuid4
 
 
@@ -75,6 +74,9 @@ class MockServerRequestHandler(BaseHTTPRequestHandler):
         elif ctype == 'application/x-www-form-urlencoded':
             length = int(self.headers['content-length'])
             data = urlparse.parse_qs(self.rfile.read(length), keep_blank_values=1)
+        elif ctype == "application/json":
+            length = int(self.headers["content-length"])
+            data = json.loads(self.rfile.read(length))
         else:
             data = {}
 
@@ -133,6 +135,7 @@ class TembaTestRunner(DiscoverRunner):
         settings.TESTING = True
 
         super().__init__(*args, **kwargs)
+        mock_server.start()
 
     def build_suite(self, *args, **kwargs):
         suite = super().build_suite(*args, **kwargs)
@@ -147,8 +150,6 @@ class TembaTestRunner(DiscoverRunner):
         return suite
 
     def run_suite(self, suite, **kwargs):
-        mock_server.start()
-
         return super().run_suite(suite, **kwargs)
 
 
@@ -165,7 +166,12 @@ class TembaTest(SmartminTest):
         if self.get_verbosity() > 2:
             settings.DEBUG = True
 
+        # make sure we start off without any service users
+        Group.objects.get(name="Service Users").user_set.clear()
+
         self.clear_cache()
+
+        self.create_anonymous_user()
 
         self.superuser = User.objects.create_superuser(username="super", email="super@user.com", password="super")
 

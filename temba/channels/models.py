@@ -42,7 +42,8 @@ from temba.utils.http import HttpEvent, http_headers
 from temba.utils.nexmo import NCCOResponse
 from temba.utils.models import SquashableModel, TembaModel, generate_uuid
 from temba.utils.text import random_string
-from twilio import twiml, TwilioRestException
+from twilio.base.exceptions import TwilioRestException
+from twilio.twiml.voice_response import VoiceResponse
 from xml.sax.saxutils import escape
 
 logger = logging.getLogger(__name__)
@@ -616,7 +617,7 @@ class Channel(TembaModel):
     def generate_ivr_response(self):
         ivr_protocol = Channel.get_type_from_code(self.channel_type).ivr_protocol
         if ivr_protocol == ChannelType.IVRProtocol.IVR_PROTOCOL_TWIML:
-            return twiml.Response()
+            return VoiceResponse()
         if ivr_protocol == ChannelType.IVRProtocol.IVR_PROTOCOL_NCCO:
             return NCCOResponse()
 
@@ -1904,6 +1905,7 @@ def get_alert_user():
 class ChannelSession(SmartModel):
     PENDING = 'P'
     QUEUED = 'Q'
+    WIRED = 'W'
     RINGING = 'R'
     IN_PROGRESS = 'I'
     COMPLETED = 'D'
@@ -1931,6 +1933,7 @@ class ChannelSession(SmartModel):
 
     STATUS_CHOICES = ((PENDING, "Pending"),
                       (QUEUED, "Queued"),
+                      (WIRED, "Wired"),
                       (RINGING, "Ringing"),
                       (IN_PROGRESS, "In Progress"),
                       (COMPLETED, "Complete"),

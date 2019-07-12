@@ -1,8 +1,6 @@
 from __future__ import unicode_literals
 
-import json
 import requests
-import six
 import time
 
 from django.conf import settings
@@ -13,11 +11,13 @@ from temba.channels.models import ChannelLog
 from temba.contacts.models import Contact, URN
 from temba.flows.models import Flow
 from temba.ivr.models import IVRCall
+from temba.utils import json
 from temba.utils.http import HttpEvent
 from temba.utils.nexmo import NexmoClient as NexmoCli
 from temba.utils.twilio import TembaTwilioRestClient
-from twilio import TwilioRestException
-from twilio.util import RequestValidator
+from twilio.base.exceptions import TwilioRestException
+from twilio.request_validator import RequestValidator
+from twilio.rest.api import Api
 from nexmo import AuthenticationError, ClientError, ServerError
 
 
@@ -72,7 +72,8 @@ class NexmoClient(NexmoCli):
         try:
             response = self.create_call(params=params)
             call_uuid = response.get('uuid', None)
-            call.external_id = six.text_type(call_uuid)
+            call.external_id = str(call_uuid)
+            call.status = IVRCall.WIRED
             call.save()
             for event in self.events:
                 ChannelLog.log_ivr_interaction(call, 'Started call', event)
@@ -124,29 +125,39 @@ class NexmoClient(NexmoCli):
 
 class TwilioClient(TembaTwilioRestClient):
 
-    def __init__(self, account, token, org, **kwargs):
+    def __init__(self, account, token, org, base=None, **kwargs):
         self.org = org
         super().__init__(account=account, token=token, **kwargs)
+        if base:
+            custom_api = Api(self)
+            custom_api.base_url = base
+            self._api = custom_api
 
     def start_call(self, call, to, from_, status_callback):
         if not settings.SEND_CALLS:
             raise IVRException("SEND_CALLS set to False, skipping call start")
 
+        params = dict(to=to, from_=call.channel.address, url=status_callback, status_callback=status_callback)
+
         try:
-            twilio_call = self.calls.create(to=to,
-                                            from_=call.channel.address,
-                                            url=status_callback,
-                                            status_callback=status_callback)
-            call.external_id = six.text_type(twilio_call.sid)
+            twilio_call = self.api.calls.create(**params)
+            call.external_id = str(twilio_call.sid)
             call.save()
 
-            for event in self.calls.events:
+            # the call was successfully sent to the IVR provider
+            call.status = IVRCall.WIRED
+            call.save()
+
+            for event in self.events:
                 ChannelLog.log_ivr_interaction(call, 'Started call', event)
 
         except TwilioRestException as twilio_error:
             message = 'Twilio Error: %s' % twilio_error.msg
             if twilio_error.code == 20003:
                 message = _('Could not authenticate with your Twilio account. Check your token and try again.')
+
+            call.status = IVRCall.FAILED
+            call.save()
 
             raise IVRException(message)
 
@@ -183,10 +194,10 @@ class TwilioClient(TembaTwilioRestClient):
         return None  # pragma: needs cover
 
     def hangup(self, call):
-        response = self.calls.hangup(call.external_id)
-        for event in self.calls.events:
+        twilio_call = self.api.calls.get(call.external_id).update(status="completed")
+        for event in self.events:
             ChannelLog.log_ivr_interaction(call, 'Hung up call', event)
-        return response
+        return twilio_call
 
 
 class VerboiceClient:  # pragma: needs cover
@@ -212,16 +223,19 @@ class VerboiceClient:  # pragma: needs cover
         Contact.get_or_create(channel.org, channel.created_by, urns=[URN.from_tel(to)])
 
         # Verboice differs from Twilio in that they expect the first block of twiml up front
-        payload = six.text_type(Flow.handle_call(call))
+        payload = str(Flow.handle_call(call))
 
         # now we can post that to verboice
         url = "%s?%s" % (self.endpoint, urlencode(dict(channel=self.verboice_channel, address=to)))
         response = requests.post(url, data=payload, auth=self.auth).json()
 
         if 'call_id' not in response:
+            call.status = IVRCall.FAILED
+            call.save()
+
             raise IVRException(_('Verboice connection failed.'))
 
         # store the verboice call id in our IVRCall
         call.external_id = response['call_id']
-        call.status = IVRCall.IN_PROGRESS
+        call.status = IVRCall.WIRED
         call.save()

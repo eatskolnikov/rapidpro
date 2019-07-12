@@ -1,16 +1,15 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function, unicode_literals
-
 import base64
 import hashlib
 import hmac
-import json
+import logging
 import phonenumbers
 import plivo
 import pytz
 import six
 import time
 import requests
+import nexmo
+import twilio.base.exceptions
 
 from collections import defaultdict
 from datetime import datetime, timedelta
@@ -33,10 +32,12 @@ from temba.msgs.views import InboxView
 from temba.orgs.models import Org
 from temba.orgs.views import OrgPermsMixin, OrgObjPermsMixin, ModalMixin, AnonMixin
 from temba.channels.models import ChannelSession
-from temba.utils import analytics
-from twilio import TwilioRestException
+from temba.utils import analytics, json
+from twilio.base.exceptions import TwilioException, TwilioRestException
 from .models import Channel, ChannelEvent, SyncEvent, Alert, ChannelLog, ChannelCount
 
+
+logger = logging.getLogger(__name__)
 
 COUNTRIES_NAMES = {key: value for key, value in COUNTRIES.items()}
 COUNTRIES_NAMES['GB'] = _("United Kingdom")
@@ -947,17 +948,29 @@ class BaseClaimNumberMixin(ClaimViewMixin):
             self.remove_api_credentials_from_session()
 
             return HttpResponseRedirect('%s?success' % reverse('public.public_welcome'))
-        except Exception as e:  # pragma: needs cover
-            import traceback
-            traceback.print_exc()
+        except (
+            nexmo.AuthenticationError,
+            nexmo.ClientError,
+            twilio.base.exceptions.TwilioRestException,
+        ) as e:  # pragma: needs cover
+            logger.warning(f"Unable to claim a number: {str(e)}", exc_info=True)
+            error_message = form.error_class([str(e)])
+        except Exception as e:
+            logger.error(f"Unable to claim a number: {str(e)}", exc_info=True)
+
             message = str(e)
             if message:
-                form._errors['phone_number'] = form.error_class([message])
+                error_message = form.error_class([message])
             else:
-                form._errors['phone_number'] = _(
+                error_message = _(
                     "An error occurred connecting your Twilio number, try removing your "
-                    "Twilio account, reconnecting it and trying again.")
-            return self.form_invalid(form)
+                    "Twilio account, reconnecting it and trying again."
+                )
+
+        if error_message is not None:
+            form._errors["phone_number"] = error_message
+
+        return self.form_invalid(form)
 
 
 class ClaimAndroidForm(forms.Form):
@@ -1737,16 +1750,19 @@ class ChannelCRUDL(SmartCRUDL):
         def search_available_numbers(self, client, **kwargs):
             available_numbers = []
 
+            country = kwargs["country"]
+            del kwargs["country"]
+
             kwargs['type'] = 'local'
             try:
-                available_numbers += client.phone_numbers.search(**kwargs)
-            except TwilioRestException:  # pragma: no cover
+                available_numbers += client.api.available_phone_numbers(country).local.list(**kwargs)
+            except TwilioException:  # pragma: no cover
                 pass
 
             kwargs['type'] = 'mobile'
             try:
-                available_numbers += client.phone_numbers.search(**kwargs)
-            except TwilioRestException:  # pragma: no cover
+                available_numbers += client.api.available_phone_numbers(country).mobile.list(**kwargs)
+            except TwilioException:  # pragma: no cover
                 pass
 
             return available_numbers

@@ -4,7 +4,7 @@ import json
 
 from django.urls import reverse
 from mock import patch
-from twilio import TwilioRestException
+from twilio.base.exceptions import TwilioRestException
 
 from temba.channels.models import Channel
 from temba.orgs.models import ACCOUNT_SID, ACCOUNT_TOKEN
@@ -14,7 +14,7 @@ from temba.tests import TembaTest, MockTwilioClient, MockRequestValidator
 class TwilioTypeTest(TembaTest):
 
     @patch('temba.ivr.clients.TwilioClient', MockTwilioClient)
-    @patch('twilio.util.RequestValidator', MockRequestValidator)
+    @patch('twilio.request_validator.RequestValidator', MockRequestValidator)
     def test_claim(self):
         self.login(self.admin)
 

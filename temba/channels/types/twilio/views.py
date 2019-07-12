@@ -1,5 +1,3 @@
-from __future__ import unicode_literals, absolute_import
-
 import phonenumbers
 
 from uuid import uuid4
@@ -10,7 +8,7 @@ from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from phonenumbers.phonenumberutil import region_code_for_number
 from smartmin.views import SmartFormView
-from twilio import TwilioRestException
+from twilio.base.exceptions import TwilioRestException
 
 from temba.orgs.models import ACCOUNT_SID, ACCOUNT_TOKEN
 from temba.utils import analytics
@@ -72,8 +70,11 @@ class ClaimView(BaseClaimNumberMixin, SmartFormView):
     def get_existing_numbers(self, org):
         client = org.get_twilio_client()
         if client:
-            twilio_account_numbers = client.phone_numbers.list()
-            twilio_short_codes = client.sms.short_codes.list()
+            twilio_account_numbers = client.api.incoming_phone_numbers.stream(page_size=1000)
+            twilio_short_codes = client.api.short_codes.stream(page_size=1000)
+        else:
+            twilio_account_numbers = []
+            twilio_short_codes = []
 
         numbers = []
         for number in twilio_account_numbers:
@@ -97,7 +98,7 @@ class ClaimView(BaseClaimNumberMixin, SmartFormView):
         org = user.get_org()
 
         client = org.get_twilio_client()
-        twilio_phones = client.phone_numbers.list(phone_number=phone_number)
+        twilio_phones = client.api.incoming_phone_numbers.stream(phone_number=phone_number)
         channel_uuid = uuid4()
 
         # create new TwiML app
@@ -106,10 +107,11 @@ class ClaimView(BaseClaimNumberMixin, SmartFormView):
         new_status_url = "https://" + callback_domain + reverse('handlers.twilio_handler', args=['status', channel_uuid])
         new_voice_url = "https://" + callback_domain + reverse('handlers.twilio_handler', args=['voice', channel_uuid])
 
-        new_app = client.applications.create(
+        new_app = client.api.applications.create(
             friendly_name="%s/%s" % (callback_domain.lower(), channel_uuid),
-            sms_url=new_receive_url,
             sms_method="POST",
+            sms_url=new_receive_url,
+            voice_method="POST",
             voice_url=new_voice_url,
             voice_fallback_url="https://" + settings.AWS_BUCKET_DOMAIN + "/voice_unavailable.xml",
             voice_fallback_method='GET',
@@ -119,13 +121,13 @@ class ClaimView(BaseClaimNumberMixin, SmartFormView):
 
         is_short_code = len(phone_number) <= 6
         if is_short_code:
-            short_codes = client.sms.short_codes.list(short_code=phone_number)
+            short_codes = client.api.short_codes.stream(short_code=phone_number)
+            short_code = next(short_codes, None)
 
-            if short_codes:
-                short_code = short_codes[0]
+            if short_code:
                 number_sid = short_code.sid
                 app_url = "https://" + callback_domain + "%s" % reverse('handlers.twilio_handler', args=['receive', channel_uuid])
-                client.sms.short_codes.update(number_sid, sms_url=app_url, sms_method='POST')
+                client.api.short_codes.get(number_sid).update(sms_url=app_url, sms_method='POST')
 
                 role = Channel.ROLE_SEND + Channel.ROLE_RECEIVE
                 phone = phone_number
@@ -134,16 +136,16 @@ class ClaimView(BaseClaimNumberMixin, SmartFormView):
                 raise Exception(_("Short code not found on your Twilio Account. "
                                   "Please check you own the short code and Try again"))
         else:
-            if twilio_phones:
-                twilio_phone = twilio_phones[0]
-                client.phone_numbers.update(twilio_phone.sid,
-                                            voice_application_sid=new_app.sid,
-                                            sms_application_sid=new_app.sid)
+            twilio_phone = next(twilio_phones, None)
+            if twilio_phone:
+                client.api.incoming_phone_numbers.get(twilio_phone.sid).update(
+                    voice_application_sid=new_app.sid, sms_application_sid=new_app.sid
+                )
 
             else:  # pragma: needs cover
-                twilio_phone = client.phone_numbers.purchase(phone_number=phone_number,
-                                                             voice_application_sid=new_app.sid,
-                                                             sms_application_sid=new_app.sid)
+                twilio_phone = client.api.incoming_phone_numbers.create(
+                    phone_number=phone_number, voice_application_sid=new_app.sid, sms_application_sid=new_app.sid
+                )
 
             phone = phonenumbers.format_number(phonenumbers.parse(phone_number, None),
                                                phonenumbers.PhoneNumberFormat.NATIONAL)

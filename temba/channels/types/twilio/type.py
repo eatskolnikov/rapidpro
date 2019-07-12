@@ -1,10 +1,7 @@
-from __future__ import unicode_literals, absolute_import
-
 import time
-import six
 
 from django.utils.translation import ugettext_lazy as _
-from twilio import TwilioRestException
+from twilio.base.exceptions import TwilioRestException
 
 from temba.channels.types.twilio.views import ClaimView
 from temba.channels.views import TWILIO_SUPPORTED_COUNTRIES_CONFIG
@@ -22,6 +19,8 @@ class TwilioType(ChannelType):
 
     code = 'T'
     category = ChannelType.Category.PHONE
+
+    courier_url = r"^t/(?P<uuid>[a-z0-9\-]+)/(?P<action>receive|status)$"
 
     name = "Twilio"
     icon = "icon-channel-twilio"
@@ -54,19 +53,25 @@ class TwilioType(ChannelType):
             number_update_args['voice_application_sid'] = ""
 
         try:
-            number_sid = channel.bod or channel.config_json()['number_sid']
-            client.phone_numbers.update(number_sid, **number_update_args)
-        except Exception:
-            if client:
-                matching = client.phone_numbers.list(phone_number=channel.address)
-                if matching:
-                    client.phone_numbers.update(matching[0].sid, **number_update_args)
-
-        if 'application_sid' in config:
             try:
-                client.applications.delete(sid=config['application_sid'])
-            except TwilioRestException:  # pragma: no cover
-                pass
+                number_sid = channel.bod or channel.config_json()['number_sid']
+                client.api.incoming_phone_numbers.get(number_sid).update(**number_update_args)
+            except Exception:
+                if client:
+                    matching = client.api.incoming_phone_numbers.stream(phone_number=channel.address)
+                    first_match = next(matching, None)
+                    if first_match:
+                        client.api.incoming_phone_numbers.get(first_match.sid).update(**number_update_args)
+
+            if 'application_sid' in config:
+                try:
+                    client.api.applications.get(sid=config["application_sid"]).delete()
+                except TwilioRestException:  # pragma: no cover
+                    pass
+        except TwilioRestException as e:
+            # we swallow 20003 which means our twilio key is no longer valid
+            if e.code != 20003:
+                raise e
 
     def send(self, channel, msg, text):
         callback_url = Channel.build_twilio_callback_url(channel.callback_domain, channel.channel_type, channel.uuid, msg.id)
@@ -77,7 +82,7 @@ class TwilioType(ChannelType):
         if msg.attachments:
             # for now we only support sending one attachment per message but this could change in future
             attachment = Attachment.parse_all(msg.attachments)[0]
-            media_urls = [attachment.url]
+            media_urls = [str(attachment.url)]
 
         if channel.channel_type == 'TW':  # pragma: no cover
             config = channel.config
@@ -102,7 +107,7 @@ class TwilioType(ChannelType):
                                        media_url=media_urls,
                                        status_callback=callback_url)
 
-            Channel.success(channel, msg, WIRED, start, events=client.messages.events)
+            Channel.success(channel, msg, WIRED, start, events=client.events)
 
         except TwilioRestException as e:
             fatal = False
@@ -114,7 +119,7 @@ class TwilioType(ChannelType):
                 contact = Contact.objects.get(id=msg.contact)
                 contact.stop(contact.modified_by)
 
-            raise SendException(e.msg, events=client.messages.events, fatal=fatal)
+            raise SendException(e.msg, events=client.events, fatal=fatal)
 
         except Exception as e:
-            raise SendException(six.text_type(e), events=client.messages.events)
+            raise SendException(str(e), events=client.events)

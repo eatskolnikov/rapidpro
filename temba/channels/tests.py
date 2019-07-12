@@ -43,8 +43,8 @@ from temba.utils.http import http_headers
 from temba.utils.jiochat import JiochatClient
 from temba.utils.twitter import generate_twitter_signature
 from temba.utils.queues import push_task
-from twilio import TwilioRestException
-from twilio.util import RequestValidator
+from twilio.base.exceptions import TwilioRestException
+from twilio.request_validator import RequestValidator
 from twython import TwythonError
 import urllib.parse as urlparse
 from xml.etree import ElementTree as ET

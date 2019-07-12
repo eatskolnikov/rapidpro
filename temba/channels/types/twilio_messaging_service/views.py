@@ -1,11 +1,9 @@
-from __future__ import unicode_literals, absolute_import
-
 from django import forms
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from smartmin.views import SmartFormView
-from twilio import TwilioRestException
+from twilio.base.exceptions import TwilioRestException
 
 from temba.orgs.models import ACCOUNT_SID, ACCOUNT_TOKEN
 from ...models import Channel
