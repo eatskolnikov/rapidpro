@@ -823,6 +823,24 @@ class MockTwilioClient(TwilioClient):
     def validate(self, request):
         return True
 
+    class MockInstanceResource(object):
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def fetch(self):
+            return self
+
+        def update(self, **kwargs):
+            return True
+
+        def delete(self, **kwargs):
+            return True
+
+        def get(self, sid):
+            objs = list(self.stream())
+            if len(objs) > 0:
+                return objs[0]
+
     class MockAPI(object):
         def __init__(self, *args, **kwargs):
             self.base_url = "base_url"
@@ -945,3 +963,14 @@ class MockTwilioClient(TwilioClient):
 
         def update(self, external_id, url):
             print("Updating call for %s to url %s" % (external_id, url))
+
+    class MockAvailablePhonenumbers(MockInstanceResource):
+        def __init__(self, *args):
+            self.country_code = None
+            self.local = MockTwilioClient.MockPhoneNumbers()
+            self.mobile = MockTwilioClient.MockPhoneNumbers()
+            self.toll_free = MockTwilioClient.MockPhoneNumbers()
+
+        def __call__(self, country_code):
+            self.country_code = country_code
+            return self

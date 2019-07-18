@@ -63,7 +63,7 @@ class TwilioTypeTest(TembaTest):
             self.assertIn('account_trial', response.context)
             self.assertTrue(response.context['account_trial'])
 
-        with patch('temba.tests.MockTwilioClient.MockPhoneNumbers.search') as mock_search:
+        with patch('temba.tests.MockTwilioClient.MockPhoneNumbers.list') as mock_search:
             search_url = reverse('channels.channel_search_numbers')
 
             # try making empty request
