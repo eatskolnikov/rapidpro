@@ -125,9 +125,9 @@ class NexmoClient(NexmoCli):
 
 class TwilioClient(TembaTwilioRestClient):
 
-    def __init__(self, account, token, org, base=None, **kwargs):
+    def __init__(self, account_sid, token, org, base=None, **kwargs):
         self.org = org
-        super().__init__(account=account, token=token, **kwargs)
+        super().__init__(account_sid, token, **kwargs)
         if base:
             custom_api = Api(self)
             custom_api.base_url = base
