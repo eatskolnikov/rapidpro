@@ -2580,8 +2580,8 @@ class ExternalTest(TembaTest):
         response = self.client.post(callback_url, data)
 
         self.assertEqual(400, response.status_code)
-        self.assertEqual("Bad parameter error: time data '2012-04-23T18:25:43Z' "
-                         "does not match format '%Y-%m-%dT%H:%M:%S.%fZ'", response.content)
+        self.assertContains(response, "Bad parameter error: time data '2012-04-23T18:25:43Z' "
+                            "does not match format '%Y-%m-%dT%H:%M:%S.%fZ'", status_code=400)
         self.assertFalse(Msg.objects.all())
 
     def test_receive_external(self):
@@ -2626,9 +2626,9 @@ class ExternalTest(TembaTest):
                 mock.return_value = MockResponse(200, "Sent")
                 Channel.send_message(dict_to_struct('MsgStruct', msg.as_task_json()))
                 self.assertEqual(mock.call_args[0][0], 'http://foo.com/send')
-                self.assertEqual(mock.call_args[1]['data'], 'id=%d&text=Test+message&to=%%2B250788383383&to_no_plus=250788383383&'
+                self.assertEqual(mock.call_args[1]['data'], force_bytes('id=%d&text=Test+message&to=%%2B250788383383&to_no_plus=250788383383&'
                                                             'from=%%2B250788123123&from_no_plus=250788123123&'
-                                                            'channel=%d' % (msg.id, self.channel.id))
+                                                            'channel=%d' % (msg.id, self.channel.id)))
 
         self.channel.config = json.dumps({Channel.CONFIG_SEND_URL: 'http://foo.com/send',
                                           Channel.CONFIG_SEND_BODY: '{ "text": {{text}}, "to": {{to_no_plus}} }',
@@ -2643,7 +2643,7 @@ class ExternalTest(TembaTest):
                 mock.return_value = MockResponse(200, "Sent")
                 Channel.send_message(dict_to_struct('MsgStruct', msg.as_task_json()))
                 self.assertEqual(mock.call_args[0][0], 'http://foo.com/send')
-                self.assertEqual(mock.call_args[1]['data'], '{ "text": "Test message", "to": "250788383383" }')
+                self.assertEqual(mock.call_args[1]['data'], force_bytes('{ "text": "Test message", "to": "250788383383" }'))
                 self.assertEqual(mock.call_args[1]['headers']['Content-Type'], "application/json")
 
         self.channel.config = json.dumps({Channel.CONFIG_SEND_URL: 'http://foo.com/send',
@@ -2661,7 +2661,7 @@ class ExternalTest(TembaTest):
                 mock.return_value = MockResponse(200, "Sent")
                 Channel.send_message(dict_to_struct('MsgStruct', msg.as_task_json()))
                 self.assertEqual(mock.call_args[0][0], 'http://foo.com/send')
-                self.assertEqual(mock.call_args[1]['data'], 'text=' + msg.text + '&to=250788383383')
+                self.assertEqual(mock.call_args[1]['data'], force_bytes('text=' + msg.text + '&to=250788383383'))
 
         self.channel.config = json.dumps({Channel.CONFIG_SEND_URL: 'http://foo.com/send',
                                           Channel.CONFIG_SEND_BODY: '<msg><text>{{text}}</text><to>{{to_no_plus}}</to></msg>',
@@ -2679,7 +2679,7 @@ class ExternalTest(TembaTest):
                 mock.return_value = MockResponse(200, "Sent")
                 Channel.send_message(dict_to_struct('MsgStruct', msg.as_task_json()))
                 self.assertEqual(mock.call_args[0][0], 'http://foo.com/send')
-                self.assertEqual(mock.call_args[1]['data'], '<msg><text>التوطين</text><to>250788383383</to></msg>'.encode('utf8'))
+                self.assertEqual(mock.call_args[1]['data'], force_bytes('<msg><text>التوطين</text><to>250788383383</to></msg>'))
                 self.assertEqual(mock.call_args[1]['headers']['Content-Type'], Channel.CONTENT_TYPES[Channel.CONTENT_TYPE_XML])
 
     @override_settings(SEND_MESSAGES=True)
@@ -2698,7 +2698,7 @@ class ExternalTest(TembaTest):
             self.assertEqual(WIRED, msg.status)
             self.assertTrue(msg.sent_on)
 
-            self.assertTrue("text=Test+message" in mock.call_args[1]['data'])
+            self.assertTrue(force_bytes("text=Test+message") in mock.call_args[1]['data'])
 
             self.clear_cache()
 
@@ -2768,7 +2768,7 @@ class ExternalTest(TembaTest):
             self.assertEqual(WIRED, msg.status)
             self.assertTrue(msg.sent_on)
 
-            self.assertIn("text=Test+message%0Ahttps%3A%2F%2Fexample.com%2Fattachments%2Fpic.jpg", mock.call_args[1]['data'])
+            self.assertIn(force_bytes("text=Test+message%0Ahttps%3A%2F%2Fexample.com%2Fattachments%2Fpic.jpg"), mock.call_args[1]['data'])
 
             self.clear_cache()
 
