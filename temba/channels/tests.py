@@ -565,7 +565,7 @@ class ChannelTest(TembaTest):
 
             # sign the request
             key = str(channel.secret) + str(ts)
-            signature = hmac.new(key=key, msg=bytes(post_data), digestmod=hashlib.sha256).digest()
+            signature = hmac.new(key=force_bytes(key), msg=force_bytes(post_data), digestmod=hashlib.sha256).digest()
 
             # base64 and url sanitize
             signature = urlparse.quote(base64.urlsafe_b64encode(signature))
@@ -1210,7 +1210,7 @@ class ChannelTest(TembaTest):
 
         self.nexmo_uuid = str(uuid.uuid4())
         nexmo_config = {NEXMO_KEY: '1234', NEXMO_SECRET: '1234', NEXMO_UUID: self.nexmo_uuid,
-                        NEXMO_APP_ID: 'nexmo-app-id', NEXMO_APP_PRIVATE_KEY: 'nexmo-private-key'}
+                        NEXMO_APP_ID: 'nexmo-app-id', NEXMO_APP_PRIVATE_KEY: 'nexmo-private-key\n'}
 
         org = self.channel.org
 
@@ -1254,10 +1254,18 @@ class ChannelTest(TembaTest):
 
             # missing key to throw exception
             plivo_get.return_value = MockResponse(200, json.dumps(dict()))
-            response = self.client.post(plivo_search_url, dict(country='US', area_code=''), follow=True)
+            response = self.client.post(plivo_search_url, dict(country="US", area_code=""), follow=True)
 
             self.assertEqual(response.status_code, 200)
-            self.assertContains(response, 'error')
+            self.assertContains(response, "error")
+
+            plivo_get.side_effect = [
+                MockResponse(200, json.dumps(dict())),  # get account in pre_process
+                MockResponse(400, "Bad request"),  # failed search numbers
+            ]
+            response = self.client.post(plivo_search_url, dict(country="US", area_code=""), follow=True)
+
+            self.assertContains(response, "Bad request")
 
     def test_release(self):
         Channel.objects.all().delete()
@@ -1296,8 +1304,7 @@ class ChannelTest(TembaTest):
         nexmo.refresh_from_db()
         self.assertIsNone(nexmo.org)
         self.assertFalse(nexmo.is_active)
-
-        Channel.objects.all().delete()
+        self.releaseChannels(delete=True)
 
         # register and claim an Android channel
         reg_data = dict(cmds=[dict(cmd="fcm", fcm_id="FCM111", uuid='uuid'),
@@ -1311,11 +1318,7 @@ class ChannelTest(TembaTest):
         android.release()
 
         # check that some details are cleared and channel is now in active
-        self.assertIsNone(android.org)
-        self.assertIsNone(android.gcm_id)
-        self.assertIsNone(android.secret)
         self.assertFalse(android.is_active)
-
         self.assertIsNone(android.config_json().get(Channel.CONFIG_FCM_ID, None))
 
     @override_settings(IS_PROD=True)
@@ -1794,7 +1797,7 @@ class ChannelTest(TembaTest):
     @patch('nexmo.Client.update_call')
     @patch('nexmo.Client.create_application')
     def test_get_ivr_client(self, mock_create_application, mock_update_call):
-        mock_create_application.return_value = dict(id='app-id', keys=dict(private_key='private-key'))
+        mock_create_application.return_value = dict(id='app-id', keys=dict(private_key='private-key\n'))
         mock_update_call.return_value = dict(uuid='12345')
 
         channel = Channel.create(self.org, self.user, 'RW', 'A', "Tigo", "+250725551212", secret="11111", gcm_id="456")
@@ -1872,7 +1875,7 @@ class ChannelBatchTest(TembaTest):
     def test_time_utils(self):
         from temba.utils import datetime_to_ms, ms_to_datetime
         now = timezone.now()
-        now = now.replace(microsecond=now.microsecond / 1000 * 1000)
+        now = now.replace(microsecond=now.microsecond // 1000 * 1000)
 
         epoch = datetime_to_ms(now)
         self.assertEqual(ms_to_datetime(epoch), now)
@@ -3461,7 +3464,7 @@ class NexmoTest(TembaTest):
 
         self.nexmo_uuid = str(uuid.uuid4())
         nexmo_config = {NEXMO_KEY: '1234', NEXMO_SECRET: '1234', NEXMO_UUID: self.nexmo_uuid,
-                        NEXMO_APP_ID: 'nexmo-app-id', NEXMO_APP_PRIVATE_KEY: 'nexmo-private-key'}
+                        NEXMO_APP_ID: 'nexmo-app-id', NEXMO_APP_PRIVATE_KEY: 'nexmo-private-key\n'}
 
         org = self.channel.org
 

@@ -9,6 +9,7 @@ import requests
 from django.conf import settings
 from django.db.models import Model
 from django.utils.http import urlencode
+from django.utils.encoding import force_bytes, force_text
 from twython import Twython
 from twython import TwythonAuthError
 from twython import TwythonError
@@ -171,5 +172,5 @@ class TembaTwython(Twython):  # pragma: no cover
 
 
 def generate_twitter_signature(content, consumer_secret):
-    token = hmac.new(bytes(consumer_secret.encode('ascii')), msg=content, digestmod=hashlib.sha256).digest()
-    return 'sha256=' + base64.standard_b64encode(token)
+    token = hmac.new(force_bytes(consumer_secret.encode('ascii')), msg=force_bytes(content), digestmod=hashlib.sha256).digest()
+    return 'sha256=' + force_text(base64.standard_b64encode(token))

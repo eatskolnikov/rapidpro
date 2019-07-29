@@ -537,6 +537,14 @@ class TembaTest(SmartminTest):
     def releaseContacts(self, delete=False):
         self.release(Contact.objects.all(), delete=delete, user=self.admin)
 
+    def releaseChannels(self, delete=False):
+        channels = Channel.objects.all()
+        self.release(channels)
+        if delete:
+            for channel in channels:
+                channel.counts.all().delete()
+                channel.delete()
+
 
 class FlowFileTest(TembaTest):
 

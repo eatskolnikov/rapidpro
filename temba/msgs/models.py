@@ -1294,7 +1294,11 @@ class Msg(models.Model):
                     sent_on=self.sent_on, queued_on=self.queued_on,
                     created_on=self.created_on, modified_on=self.modified_on,
                     high_priority=self.high_priority,
-                    connection_id=self.connection_id)
+                    metadata=json.loads(self.metadata or '{}'),
+                    connection_id=self.connection_id,
+                    chatbase_version=None,
+                    chatbase_api_key=None,
+                    is_org_connected_to_chatbase=False)
 
         if self.contact_urn.auth:
             data.update(dict(auth=self.contact_urn.auth))
@@ -1303,9 +1307,6 @@ class Msg(models.Model):
         if chatbase_api_key:
             data.update(dict(chatbase_api_key=chatbase_api_key, chatbase_version=chatbase_version,
                              is_org_connected_to_chatbase=True))
-
-        if self.metadata:
-            data['metadata'] = json.loads(self.metadata)
 
         return data
 

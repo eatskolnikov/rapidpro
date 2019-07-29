@@ -1058,8 +1058,9 @@ class Channel(TembaModel):
             # Sending data to Chatbase API
             if hasattr(msg, 'is_org_connected_to_chatbase'):
                 chatbase_version = msg.chatbase_version if hasattr(msg, 'chatbase_version') else None
-                Msg.send_chatbase_log(msg.chatbase_api_key, chatbase_version, channel.name, msg.text, msg.contact,
-                                      CHATBASE_TYPE_AGENT)
+                if msg.chatbase_api_key and chatbase_version:
+                    Msg.send_chatbase_log(msg.chatbase_api_key, chatbase_version, channel.name, msg.text, msg.contact,
+                                          CHATBASE_TYPE_AGENT)
 
     @classmethod
     def send_dummy_message(cls, channel, msg, text):  # pragma: no cover
@@ -1227,7 +1228,7 @@ class Channel(TembaModel):
                 ChannelLog.log_exception(channel, msg, e)
 
                 import traceback
-                traceback.print_exc(e)
+                traceback.print_exc()
 
                 Msg.mark_error(r, channel, msg, fatal=e.fatal)
                 sent_count -= 1
@@ -1236,7 +1237,7 @@ class Channel(TembaModel):
                 ChannelLog.log_error(msg, six.text_type(e))
 
                 import traceback
-                traceback.print_exc(e)
+                traceback.print_exc()
 
                 Msg.mark_error(r, channel, msg)
                 sent_count -= 1
@@ -1354,7 +1355,8 @@ class ChannelCount(SquashableModel):
 
     channel = models.ForeignKey(Channel,
                                 help_text=_("The channel this is a daily summary count for"),
-                                on_delete=models.PROTECT)
+                                on_delete=models.PROTECT,
+                                related_name="counts")
     count_type = models.CharField(choices=COUNT_TYPE_CHOICES, max_length=2,
                                   help_text=_("What type of message this row is counting"))
     day = models.DateField(null=True, help_text=_("The day this count is for"))

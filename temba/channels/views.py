@@ -3,7 +3,6 @@ import hashlib
 import hmac
 import logging
 import phonenumbers
-import plivo
 import pytz
 import six
 import time
@@ -23,6 +22,8 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonRespons
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.utils.encoding import force_bytes, force_text
+from django.utils.http import urlencode
 from django_countries.data import COUNTRIES
 from smartmin.views import SmartCRUDL, SmartReadView
 from smartmin.views import SmartUpdateView, SmartDeleteView, SmartTemplateView, SmartListView, SmartFormView, SmartModelActionView
@@ -33,6 +34,7 @@ from temba.orgs.models import Org
 from temba.orgs.views import OrgPermsMixin, OrgObjPermsMixin, ModalMixin, AnonMixin
 from temba.channels.models import ChannelSession
 from temba.utils import analytics, json
+from temba.utils.http import http_headers
 from twilio.base.exceptions import TwilioException, TwilioRestException
 from .models import Channel, ChannelEvent, SyncEvent, Alert, ChannelLog, ChannelCount
 
@@ -559,7 +561,7 @@ def sync(request, channel_id):
     channel = channel[0]
 
     request_time = request.GET.get('ts', '')
-    request_signature = request.GET.get('signature', '')
+    request_signature = force_bytes(request.GET.get('signature', ''))
 
     if not channel.secret or not channel.org:
         return JsonResponse(dict(cmds=[channel.build_registration_command()]))
@@ -574,7 +576,7 @@ def sync(request, channel_id):
         return JsonResponse({"error_id": 3, "error": "Old Request", "cmds": []}, status=401)
 
     # sign the request
-    signature = hmac.new(key=str(channel.secret + request_time), msg=bytes(request.body), digestmod=hashlib.sha256).digest()
+    signature = hmac.new(key=force_bytes(channel.secret + request_time), msg=force_bytes(request.body), digestmod=hashlib.sha256).digest()
 
     # base64 and url sanitize
     signature = base64.urlsafe_b64encode(signature).strip()
@@ -730,7 +732,7 @@ def register(request):
     if request.method != 'POST':
         return HttpResponse(status=500, content=_('POST Required'))
 
-    client_payload = json.loads(request.body)
+    client_payload = json.loads(force_text(request.body))
     cmds = client_payload['cmds']
 
     # look up a channel with that id
@@ -1831,42 +1833,46 @@ class ChannelCRUDL(SmartCRUDL):
         form_class = SearchPlivoForm
 
         def pre_process(self, *args, **kwargs):  # pragma: needs cover
-            client = self.get_valid_client()
-
-            if client:
-                return None
-            else:
-                return HttpResponseRedirect(reverse('channels.channel_claim'))
-
-        def get_valid_client(self):  # pragma: needs cover
             auth_id = self.request.session.get(Channel.CONFIG_PLIVO_AUTH_ID, None)
             auth_token = self.request.session.get(Channel.CONFIG_PLIVO_AUTH_TOKEN, None)
 
-            try:
-                client = plivo.RestAPI(auth_id, auth_token)
-                validation_response = client.get_account()
+            headers = http_headers(extra={"Content-Type": "application/json"})
+            response = requests.get(
+                "https://api.plivo.com/v1/Account/%s/" % auth_id, headers=headers, auth=(auth_id, auth_token)
+            )
 
-                if validation_response[0] != 200:
-                    client = None
-            except Exception:
-                client = None
-
-            return client
+            if response.status_code == 200:
+                return None
+            else:
+                return HttpResponseRedirect(reverse("channels.channel_claim"))
 
         def form_valid(self, form, *args, **kwargs):
             data = form.cleaned_data
-            client = self.get_valid_client()
+            auth_id = self.request.session.get(Channel.CONFIG_PLIVO_AUTH_ID, None)
+            auth_token = self.request.session.get(Channel.CONFIG_PLIVO_AUTH_TOKEN, None)
 
             results_numbers = []
             try:
-                status, response_data = client.search_phone_numbers(dict(country_iso=data['country'], pattern=data['area_code']))
+                url = "https://api.plivo.com/v1/Account/%s/PhoneNumber/?%s" % (
+                    auth_id,
+                    urlencode(dict(country_iso=data["country"], pattern=data["area_code"])),
+                )
 
-                if status == 200:
-                    results_numbers = ['+' + number_dict['number'] for number_dict in response_data['objects']]
+                headers = http_headers(extra={"Content-Type": "application/json"})
+                response = requests.get(url, headers=headers, auth=(auth_id, auth_token))
 
-                numbers = [phonenumbers.format_number(phonenumbers.parse(number, None),
-                                                      phonenumbers.PhoneNumberFormat.INTERNATIONAL)
-                           for number in results_numbers]
+                if response.status_code == 200:
+                    response_data = response.json()
+                    results_numbers = ["+" + number_dict["number"] for number_dict in response_data["objects"]]
+                else:
+                    return JsonResponse(dict(error=response.text))
+
+                numbers = [
+                    phonenumbers.format_number(
+                        phonenumbers.parse(number, None), phonenumbers.PhoneNumberFormat.INTERNATIONAL
+                    )
+                    for number in results_numbers
+                ]
                 return JsonResponse(numbers, safe=False)
             except Exception as e:
                 return JsonResponse(dict(error=str(e)))
