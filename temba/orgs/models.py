@@ -31,6 +31,7 @@ from django.core.files.temp import NamedTemporaryFile
 from django.db import models, transaction
 from django.db.models import Sum, F, Q, Prefetch
 from django.utils import timezone
+from django.utils.encoding import force_bytes
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.utils.text import slugify
 from django_redis import get_redis_connection
@@ -2151,7 +2152,7 @@ class Org(SmartModel):
                     extension = 'wav'
 
             temp = NamedTemporaryFile(delete=True)
-            temp.write(response.content)
+            temp.write(force_bytes(response.content))
             temp.flush()
 
             file = File(temp)

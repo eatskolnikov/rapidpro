@@ -2627,8 +2627,8 @@ class ExternalTest(TembaTest):
                 Channel.send_message(dict_to_struct('MsgStruct', msg.as_task_json()))
                 self.assertEqual(mock.call_args[0][0], 'http://foo.com/send')
                 self.assertEqual(mock.call_args[1]['data'], force_bytes('id=%d&text=Test+message&to=%%2B250788383383&to_no_plus=250788383383&'
-                                                            'from=%%2B250788123123&from_no_plus=250788123123&'
-                                                            'channel=%d' % (msg.id, self.channel.id)))
+                                                                        'from=%%2B250788123123&from_no_plus=250788123123&'
+                                                                        'channel=%d' % (msg.id, self.channel.id)))
 
         self.channel.config = json.dumps({Channel.CONFIG_SEND_URL: 'http://foo.com/send',
                                           Channel.CONFIG_SEND_BODY: '{ "text": {{text}}, "to": {{to_no_plus}} }',
@@ -5355,7 +5355,7 @@ class TwilioTest(TembaTest):
         return self.client.post(url, data, **{'HTTP_X_TWILIO_SIGNATURE': signature})
 
     @patch('temba.ivr.clients.TwilioClient', MockTwilioClient)
-    @patch('twilio.util.RequestValidator', MockRequestValidator)
+    @patch('twilio.request_validator.RequestValidator', MockRequestValidator)
     def test_receive_media(self):
         post_data = dict(To=self.channel.address, From='+250788383383', Body="Test",
                          NumMedia='1', MediaUrl0='https://yourimage.io/IMPOSSIBLE-HASH',
@@ -5535,7 +5535,8 @@ class TwilioTest(TembaTest):
 
         # test TwiML Handler...
 
-        self.channel.delete()
+        self.releaseContacts(delete=True)
+        self.releaseChannels(delete=True)
         post_data = dict(To=self.channel.address, From='+250788383300', Body="Hello World")
 
         # try without signing
@@ -5588,7 +5589,7 @@ class TwilioTest(TembaTest):
         joe = self.create_contact("Joe", "+250788383383")
 
         with self.settings(SEND_MESSAGES=True):
-            with patch('twilio.rest.resources.base.make_request') as mock:
+            with patch('twilio.rest.api.v2010.account.message.MessageList.create') as mock:
                 for channel_type in ['T', 'TMS', 'TW']:
                     ChannelLog.objects.all().delete()
                     Msg.objects.all().delete()
@@ -5745,7 +5746,7 @@ class TwilioTest(TembaTest):
         joe = self.create_contact("Joe", "+250788383383")
         msg = joe.send("Test message", self.admin, trigger_send=False, attachments=['image/jpeg:https://example.com/attachments/pic.jpg'])[0]
 
-        with patch('twilio.rest.resources.messages.Messages.create') as mock:
+        with patch('twilio.rest.api.v2010.account.message.MessageList.create') as mock:
             mock.return_value = "Sent"
 
             # manually send it off
