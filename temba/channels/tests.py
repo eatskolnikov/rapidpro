@@ -5122,7 +5122,8 @@ class DartMediaTest(TembaTest):
         response = self.client.get(callback_url)
 
         self.assertEqual(401, response.status_code)
-        self.assertContains(response, "Parameters message, original and sendto should not be null.")
+        self.assertContains(response, "Parameters message, original and sendto should not be null.",
+                            status_code=401)
 
         # all needed params
         data = {
@@ -8023,7 +8024,7 @@ class JunebugTest(JunebugTestMixin, TembaTest):
         response = self.client.post(delivery_url, data=json.dumps({}),
                                     content_type='application/json')
         self.assertEqual(400, response.status_code)
-        self.assertTrue('Missing one of' in response.content)
+        self.assertContains(response, 'Missing one of', status_code=400)
 
     def test_status(self):
         # ok, what happens with an invalid uuid?
@@ -8075,7 +8076,8 @@ class JunebugTest(JunebugTestMixin, TembaTest):
             data=json.dumps(data),
             content_type='application/json')
         self.assertEqual(400, response.status_code)
-        self.assertContains(response, "Message with external id of '%s' not found" % data['message_id'])
+        self.assertContains(response, "Message with external id of '%s' not found" % data['message_id'],
+                            status_code=400)
 
     def test_status_with_auth(self):
         self.channel.secret = "UjOq8ATo2PDS6L08t6vlqSoK"
@@ -8124,7 +8126,7 @@ class JunebugTest(JunebugTestMixin, TembaTest):
         response = self.client.post(callback_url, json.dumps({}),
                                     content_type='application/json')
         self.assertEqual(400, response.status_code)
-        self.assertTrue('Missing one of' in response.content)
+        self.assertContains(response, 'Missing one of', status_code=400)
 
     def test_receive(self):
         data = self.mk_msg(content="événement")

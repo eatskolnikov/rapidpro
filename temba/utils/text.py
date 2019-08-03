@@ -75,7 +75,7 @@ def clean_string(string_text):
 
     matches = 1
     while matches:
-        (string_text, matches) = rexp.subn('\ufffd', string_text)
+        (string_text, matches) = rexp.subn('\ufffd', force_text(string_text))
 
     rexp = regex.compile(CONTROL_CHARACTERES_REGEX, flags=regex.MULTILINE | regex.UNICODE | regex.V0)
 
