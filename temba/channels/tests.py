@@ -8880,7 +8880,7 @@ class FacebookTest(TembaTest):
             self.assertEqual(msg.contact.name, 'Ben Haggerty')
 
             Msg.objects.all().delete()
-            Contact.all().delete()
+            self.releaseContacts(delete=True)
 
         # simulate a failure to fetch contact data
         with patch('requests.get') as mock_get:
@@ -8895,7 +8895,7 @@ class FacebookTest(TembaTest):
             self.assertIsNone(msg.contact.name)
 
             Msg.objects.all().delete()
-            Contact.all().delete()
+            self.releaseContacts(delete=True)
 
         # simulate an exception
         with patch('requests.get') as mock_get:
@@ -8910,7 +8910,7 @@ class FacebookTest(TembaTest):
             self.assertIsNone(msg.contact.name)
 
             Msg.objects.all().delete()
-            Contact.all().delete()
+            self.releaseContacts(delete=True)
 
         # now with a anon org, shouldn't try to look things up
         self.org.is_anon = True
